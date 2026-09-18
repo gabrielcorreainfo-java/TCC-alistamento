@@ -1,10 +1,18 @@
 package com.example.tcc_alistamento.service;
 
-import com.example.tcc_alistamento.entity.Usuario;
+import com.example.tcc_alistamento.dto.AlistamentoResponseDTO;
+import com.example.tcc_alistamento.dto.UsuarioRequestDTO;
+import com.example.tcc_alistamento.dto.UsuarioResponseDTO;
+import com.example.tcc_alistamento.exceptions.AlistamentoNotFoundException;
+import com.example.tcc_alistamento.model.Usuario;
 import com.example.tcc_alistamento.exceptions.UsuarioNotFoundException;
 import com.example.tcc_alistamento.repository.UsuarioRepository;
 import org.springframework.beans.BeanUtils;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
 import java.util.List;
 
 /*
@@ -18,158 +26,105 @@ public class UsuarioService {
 
     // Repository responsável pelo acesso aos dados do Usuario no banco.
     private final UsuarioRepository usuarioRepository;
+    private final PasswordEncoder passwordEncoder;
 
     // Salva um usuário no banco de dados.
-    public UsuarioService(UsuarioRepository usuarioRepository){this.usuarioRepository = usuarioRepository;
+    public UsuarioService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder){this.usuarioRepository = usuarioRepository;
+        this.passwordEncoder = passwordEncoder;
     }
-
 
 
     // Retorna todos os usuários cadastrados.
-    public Usuario salvar(Usuario usuario) {
-        return usuarioRepository.save(usuario);
+    public UsuarioResponseDTO salvar(UsuarioRequestDTO dto) {
+        Usuario usuario = new Usuario();
+        BeanUtils.copyProperties(dto,usuario,"id");
+        usuario.setSenha(passwordEncoder.encode(dto.senha()));
+        usuarioRepository.save(usuario);
+        return new UsuarioResponseDTO(usuario);
 
     }
 
-    public List<Usuario> listarTodos(){
-        return usuarioRepository.findAll();
+    public List<UsuarioResponseDTO> listarTodos(){
+        return usuarioRepository.findAll().
+                stream()
+                .map(UsuarioResponseDTO::new)
+                .toList();
     }
 
-    public Usuario buscarPorId(Integer id) {
-     //  se nao encontrar usuario ele lançara essa exceção
-        return usuarioRepository.findById(id).orElseThrow(() ->
-                new UsuarioNotFoundException("Usuário não encontrado")
-        );
+    public UsuarioResponseDTO buscarPorId(Integer id) {
+        Usuario usuarioExistente = buscarUsuarioPorId(id);
+        return new UsuarioResponseDTO(usuarioExistente);
     }
 
-    public Usuario atualizarUsuario(Integer id, Usuario usuario){
+
+
+    public Usuario buscarUsuarioPorId(Integer id){
+        //  se nao encontrar usuario ele lançara essa exceção
+        return usuarioRepository.findById(id).orElseThrow(() -> new UsuarioNotFoundException("Usuário não encontrad"));
+    }
+
+    public UsuarioResponseDTO atualizarUsuario(Integer id, UsuarioRequestDTO dto){
 
         // Chama o método buscarPorId(), que procura o alistamento no banco
         // e retorna o objeto encontrado.
         // O resultado é armazenado na variável alistamentoExistente.
-        Usuario usuarioExistente = buscarPorId(id);
-
-        if(usuarioExistente == null){
-            return null;
-        }
+        Usuario usuarioExistente = buscarUsuarioPorId(id);
 
         //Ele copia todos os atributos de Usuario para usuarioExistente
         //Ele faz um set automático de todos os atributos menos o Id
         //BeanUtils.copyProperties(origem(JSON da requisição), destino(Objeto buscado no Banco));
-        BeanUtils.copyProperties(usuario, usuarioExistente, "id");
+        BeanUtils.copyProperties(dto, usuarioExistente, "id");
+        usuarioRepository.save(usuarioExistente);
 
-        return usuarioRepository.save(usuarioExistente);
+        return new UsuarioResponseDTO(usuarioRepository.save(usuarioExistente));
     }
 
-    public Usuario atualizarParcial(Integer id, Usuario usuario) {
+    public UsuarioResponseDTO atualizarParcial(Integer id, UsuarioRequestDTO dto) {
 
+        Usuario usuarioExistente = buscarUsuarioPorId(id);
 
-        Usuario usuarioExistente = buscarPorId(id);
-
-        if (usuarioExistente == null) {
-            return null;
+        if (dto.nome() != null) {
+            usuarioExistente.setNome(dto.nome());
         }
 
-        if (usuario.getNome() != null) {
-            usuarioExistente.setNome(usuario.getNome());
+        if (dto.dataNascimento() != null) {
+            usuarioExistente.setDataNascimento(dto.dataNascimento());
         }
 
-        if (usuario.getDataNascimento() != null) {
-            usuarioExistente.setDataNascimento(usuario.getDataNascimento());
+        if (dto.email() != null) {
+            usuarioExistente.setEmail(dto.email());
         }
 
-        if (usuario.getEmail() != null) {
-            usuarioExistente.setEmail(usuario.getEmail());
+        if (dto.telefone() != null) {
+            usuarioExistente.setTelefone(dto.telefone());
         }
 
-        if (usuario.getSenha() != null) {
-            usuarioExistente.setSenha(usuario.getSenha());
+        if (dto.cpf() != null) {
+            usuarioExistente.setCpf(dto.cpf());
         }
 
-        if (usuario.getTelefone() != null) {
-            usuarioExistente.setTelefone(usuario.getTelefone());
-        }
-
-        if (usuario.getCpf() != null) {
-            usuarioExistente.setCpf(usuario.getCpf());
-        }
-
-        if (usuario.getNomePai() != null) {
-            usuarioExistente.setNomePai(usuario.getNomePai());
-        }
-
-        if (usuario.getNomeMae() != null) {
-            usuarioExistente.setNomeMae(usuario.getNomeMae());
-        }
-
-        if (usuario.getEstadoCivil() != null) {
-            usuarioExistente.setEstadoCivil(usuario.getEstadoCivil());
-        }
-
-        if (usuario.getUf() != null) {
-            usuarioExistente.setUf(usuario.getUf());
-        }
-
-        if (usuario.getEscolaridade() != null) {
-            usuarioExistente.setEscolaridade(usuario.getEscolaridade());
-        }
-
-        if (usuario.getRg() != null) {
-            usuarioExistente.setRg(usuario.getRg());
-        }
-
-        if (usuario.getLocalNascimento() != null) {
-            usuarioExistente.setLocalNascimento(usuario.getLocalNascimento());
-        }
-
-        if (usuario.getCep() != null) {
-            usuarioExistente.setCep(usuario.getCep());
-        }
-
-        if (usuario.getBairro() != null) {
-            usuarioExistente.setBairro(usuario.getBairro());
-        }
-
-        if (usuario.getMunicipio() != null) {
-            usuarioExistente.setMunicipio(usuario.getMunicipio());
-        }
-
-        if (usuario.getPaisResidencia() != null) {
-            usuarioExistente.setPaisResidencia(usuario.getPaisResidencia());
-        }
-
-        if (usuario.getZonaResidencial() != null) {
-            usuarioExistente.setZonaResidencial(usuario.getZonaResidencial());
-        }
-
-        if (usuario.getNumeroResidencia() != null) {
-            usuarioExistente.setNumeroResidencia(usuario.getNumeroResidencia());
-        }
-
-        if (usuario.getLogradouro() != null) {
-            usuarioExistente.setLogradouro(usuario.getLogradouro());
-        }
-
-        if (usuario.getEstado() != null) {
-            usuarioExistente.setEstado(usuario.getEstado());
-        }
-
-        return usuarioRepository.save(usuarioExistente);
+       usuarioRepository.save(usuarioExistente);
+        return new UsuarioResponseDTO(usuarioExistente);
 
     }
 
-        public Usuario deletarUsuario(Integer id) {
+        public UsuarioResponseDTO deletarUsuario(Integer id) {
+            Usuario usuarioExistente =  buscarUsuarioPorId(id);
 
-            Usuario usuarioExistente =  buscarPorId(id);
+            usuarioRepository.delete(usuarioExistente);
 
-            if (usuarioExistente == null) {
-                return null;
-            }
-
-            usuarioRepository.deleteById(id);
-
-            return usuarioExistente;
+            return new UsuarioResponseDTO(usuarioExistente);
         }
+
+    public AlistamentoResponseDTO buscarAlistamentoDoUsuario(Integer idUsuario){
+        Usuario usuario = buscarUsuarioPorId(idUsuario);
+
+        if (usuario.getAlistamento() == null) {
+            throw new AlistamentoNotFoundException("Usuário ainda não possui alistamento");
+        }
+
+        return new AlistamentoResponseDTO(usuario.getAlistamento());
+    }
 
     }
 

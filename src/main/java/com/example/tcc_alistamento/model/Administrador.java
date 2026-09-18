@@ -1,4 +1,4 @@
-package com.example.tcc_alistamento.entity;
+package com.example.tcc_alistamento.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -30,6 +30,7 @@ public class Administrador {
 
     @Column(nullable = false, length = 255)
     private String senhaAdmin;
+
 
 // mappedBy = "administrador": informa que quem possui a chave estrangeira
 // é o atributo "administrador" da entidade Alistamento.

@@ -1,13 +1,16 @@
 package com.example.tcc_alistamento.service;
 
+import com.example.tcc_alistamento.dto.AdministradorAlistamentosResponseDTO;
 import com.example.tcc_alistamento.dto.AdministradorRequestDTO;
 import com.example.tcc_alistamento.dto.AdministradorResponseDTO;
-import com.example.tcc_alistamento.dto.AlistamentoResponseDTO;
-import com.example.tcc_alistamento.entity.Administrador;
+import com.example.tcc_alistamento.model.Administrador;
 import com.example.tcc_alistamento.exceptions.AdministradorNotFoundException;
 import com.example.tcc_alistamento.repository.AdministradorRepository;
 import org.springframework.beans.BeanUtils;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 
 import java.util.List;
@@ -17,22 +20,26 @@ public class AdministradorService {
 
 
     private final AdministradorRepository administradorRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public AdministradorService(AdministradorRepository administradorRepository) {
+    public AdministradorService(AdministradorRepository administradorRepository, PasswordEncoder passwordEncoder) {
         this.administradorRepository = administradorRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public AdministradorResponseDTO salvar(AdministradorRequestDTO dto){
 
         Administrador administrador = new Administrador();
-        administrador.setEmailAdmin(dto.emailAdmin());
-        administrador.setNomeAdmin(dto.nomeAdmin());
-        administrador.setSenhaAdmin(dto.senhaAdmin());
 
-        Administrador administradorSalvo = administradorRepository.save(administrador);
+        BeanUtils.copyProperties(dto, administrador,"id");
+
+        administradorRepository.save(administrador);
+
         return new AdministradorResponseDTO(administrador);
-
     }
+
+    // login() removido — a autenticação agora passa pelo authenticationManager
+    // no AdministradorController, igual já é feito para Usuario.
 
     public List<AdministradorResponseDTO> listar(){
 
@@ -41,66 +48,73 @@ public class AdministradorService {
                 .toList();
     }
 
+    // Método usado para o controller
     public AdministradorResponseDTO buscarPorId(Integer id){
-        Administrador administradorExistente = administradorRepository.findById(id).orElseThrow(() ->
-                new AdministradorNotFoundException("Administrador não encontrado"));
+
+        Administrador administradorExistente = buscarEntidadePorId(id);
         return new AdministradorResponseDTO(administradorExistente);
 
     }
 
+    // Esse metodo é usado para dentro do service e nao para o controller
+    private Administrador buscarEntidadePorId(Integer id){
+
+        return administradorRepository.findById(id)
+                .orElseThrow(() ->
+                        new AdministradorNotFoundException(
+                                "Administrador não encontrado"
+                        )
+                );
+    }
+
+    public AdministradorAlistamentosResponseDTO buscarAlistamentos(Integer id){
+
+        Administrador administrador = buscarEntidadePorId(id);
+
+        return new AdministradorAlistamentosResponseDTO(administrador);
+    }
+
     public AdministradorResponseDTO deletar(Integer id){
+        Administrador administrador = buscarEntidadePorId(id);
 
-        AdministradorResponseDTO admin = buscarPorId(id);
-        administradorRepository.save(admin)
-        return new AdministradorResponseDTO(admin);
+        administradorRepository.delete(administrador);
+
+        return new AdministradorResponseDTO(administrador);
     }
 
-    public Administrador login(String email, String senha){
-        /*
-        Cria uma variável chamada admin do tipo Administrador e
-        coloca dentro dela o objeto que veio do banco através do método findByEmailAdmin(email).
-         */
-        Administrador admin = administradorRepository.findByEmailAdmin(email);
 
-        if( admin != null && admin.getSenhaAdmin().equals(senha)){
-            return admin;
-        }
 
-        return null;
-    }
+    public AdministradorResponseDTO atualizar(Integer id, AdministradorRequestDTO dto){
 
-    public Administrador atualizar(Integer id, Administrador administrador){
+        Administrador administradorExistente = buscarEntidadePorId(id);
 
-        Administrador administradorExistente = buscarPorId(id);
+        BeanUtils.copyProperties(dto,administradorExistente,"id");
 
-        BeanUtils.copyProperties(administrador,administradorExistente,"id");
-        return administradorRepository.save(administradorExistente);
+        administradorRepository.save(administradorExistente);
+
+        return new AdministradorResponseDTO(administradorExistente);
 
     }
 
-    public Administrador atualizarParcial(Integer id, Administrador administrador){
+    public AdministradorResponseDTO atualizarParcial(Integer id, AdministradorRequestDTO dto){
 
-        Administrador adminExistente = buscarPorId(id);
+        Administrador adminExistente = buscarEntidadePorId(id);
 
-        if (administrador.getNomeAdmin() != null) {
-            adminExistente.setNomeAdmin(administrador.getNomeAdmin());
+
+        if (dto.nomeAdmin()!= null) {
+            adminExistente.setNomeAdmin(dto.nomeAdmin());
         }
 
-        if (administrador.getEmailAdmin() != null) {
-            adminExistente.setEmailAdmin(administrador.getEmailAdmin());
+        if (dto.emailAdmin() != null) {
+            adminExistente.setEmailAdmin(dto.emailAdmin());
         }
 
-        if (administrador.getSenhaAdmin() != null) {
-            adminExistente.setSenhaAdmin(administrador.getSenhaAdmin());
+        if (dto.senhaAdmin() != null) {
+            adminExistente.setSenhaAdmin(dto.senhaAdmin());
         }
+        administradorRepository.save(adminExistente);
 
-        return administradorRepository.save(adminExistente);
-    }
-
-    public Administrador deletarAdministrador(Integer id){
-        Administrador administradorExistente = buscarPorId(id);
-         administradorRepository.deleteById(id);
-        return administradorExistente;
+        return new AdministradorResponseDTO(adminExistente);
     }
 }
 

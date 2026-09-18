@@ -1,6 +1,6 @@
 package com.example.tcc_alistamento.dto;
 
-import com.example.tcc_alistamento.entity.Usuario;
+import com.example.tcc_alistamento.model.Usuario;
 
 import java.time.LocalDate;
 

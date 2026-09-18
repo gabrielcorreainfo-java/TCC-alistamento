@@ -1,5 +1,5 @@
 package com.example.tcc_alistamento.dto;
-import com.example.tcc_alistamento.entity.Administrador;
+import com.example.tcc_alistamento.model.Administrador;
 // Esse DTO representa os dados do administrador que você quer devolver na resposta.
 
 public record AdministradorResponseDTO(Integer id,

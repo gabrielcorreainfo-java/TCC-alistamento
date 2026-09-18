@@ -1,5 +1,6 @@
-package com.example.tcc_alistamento.entity;
+package com.example.tcc_alistamento.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -30,6 +31,14 @@ public class Alistamento {
     @OneToOne
     @JoinColumn(name = "id_usuario")
     private Usuario usuario;
+
+    @JsonIgnore
+    @OneToOne(mappedBy = "alistamento")
+    private AvaliacaoMedica avaliacaoMedica;
+
+    @JsonIgnore
+    @OneToOne(mappedBy = "alistamento")
+    private Agendamento agendamento;
 
     // Muitos alistamentos podem estar relacionados a um administrador.
     @ManyToOne

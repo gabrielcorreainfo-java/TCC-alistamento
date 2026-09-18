@@ -1,16 +1,14 @@
-package com.example.tcc_alistamento.entity;
+package com.example.tcc_alistamento.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.LocalDate;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 @Entity
 @Table(name = "Usuario")
 
@@ -84,6 +82,11 @@ public class Usuario {
     @Column(length = 50)
     private String estado;
 
+    public Usuario(String login, String password){
+        this.email=login;
+        this.senha=password;
+    }
+
 
     //Cada usuário possui um único alistamento.
     // O relacionamento é controlado pelo atributo "usuario" da entidade Alistamento.
@@ -91,5 +94,4 @@ public class Usuario {
     @OneToOne(mappedBy = "usuario")
     private Alistamento alistamento;
 
-
-}
+    }

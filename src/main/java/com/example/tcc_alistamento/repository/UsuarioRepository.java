@@ -1,7 +1,9 @@
 package com.example.tcc_alistamento.repository;
 
-import com.example.tcc_alistamento.entity.Usuario;
+import com.example.tcc_alistamento.model.Administrador;
+import com.example.tcc_alistamento.model.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Repository;
 
 /*
@@ -25,5 +27,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
+    Usuario findByEmail(String email);
 
 }

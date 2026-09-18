@@ -1,9 +1,8 @@
 package com.example.tcc_alistamento.controller;
 
+import com.example.tcc_alistamento.dto.AlistamentoCompletoResponseDTO;
 import com.example.tcc_alistamento.dto.AlistamentoRequestDTO;
 import com.example.tcc_alistamento.dto.AlistamentoResponseDTO;
-import com.example.tcc_alistamento.entity.Alistamento;
-import com.example.tcc_alistamento.entity.Usuario;
 import com.example.tcc_alistamento.service.AlistamentoService;
 import org.springframework.web.bind.annotation.*;
 
@@ -56,5 +55,14 @@ public class AlistamentoController {
             @PathVariable Integer id) {
 
         return alistamentoService.deletarAlistamento(id);
+    }
+
+    // Endpoint agregado: alistamento + documentos + agendamento + avaliação médica
+    // numa única resposta. Pensado para a tela de dashboard do usuário no front.
+    @GetMapping("/{id}/completo")
+    public AlistamentoCompletoResponseDTO buscarCompleto(
+            @PathVariable Integer id) {
+
+        return alistamentoService.buscarCompleto(id);
     }
 }

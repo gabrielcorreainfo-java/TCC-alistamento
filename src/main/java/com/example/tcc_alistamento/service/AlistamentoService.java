@@ -1,17 +1,19 @@
 package com.example.tcc_alistamento.service;
 
+import com.example.tcc_alistamento.dto.AlistamentoCompletoResponseDTO;
 import com.example.tcc_alistamento.dto.AlistamentoRequestDTO;
 import com.example.tcc_alistamento.dto.AlistamentoResponseDTO;
-import com.example.tcc_alistamento.entity.Administrador;
-import com.example.tcc_alistamento.entity.Alistamento;
-import com.example.tcc_alistamento.entity.Usuario;
+import com.example.tcc_alistamento.dto.DocumentoResponseDTO;
+import com.example.tcc_alistamento.model.Administrador;
+import com.example.tcc_alistamento.model.Alistamento;
+import com.example.tcc_alistamento.model.Usuario;
 import com.example.tcc_alistamento.exceptions.AdministradorNotFoundException;
 import com.example.tcc_alistamento.exceptions.AlistamentoNotFoundException;
 import com.example.tcc_alistamento.exceptions.UsuarioNotFoundException;
 import com.example.tcc_alistamento.repository.AdministradorRepository;
 import com.example.tcc_alistamento.repository.AlistamentoRepository;
+import com.example.tcc_alistamento.repository.DocumentoRepository;
 import com.example.tcc_alistamento.repository.UsuarioRepository;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,12 +23,14 @@ public class AlistamentoService {
     private final AlistamentoRepository alistamentoRepository;
     private final UsuarioRepository usuarioRepository;
     private final AdministradorRepository administradorRepository;
+    private final DocumentoRepository documentoRepository;
 
 
-    public AlistamentoService(AlistamentoRepository alistamentoRepository, UsuarioRepository usuarioRepository, AdministradorRepository administradorRepository) {
+    public AlistamentoService(AlistamentoRepository alistamentoRepository, UsuarioRepository usuarioRepository, AdministradorRepository administradorRepository, DocumentoRepository documentoRepository) {
         this.alistamentoRepository = alistamentoRepository;
         this.usuarioRepository = usuarioRepository;
         this.administradorRepository = administradorRepository;
+        this.documentoRepository = documentoRepository;
     }
 
     public AlistamentoResponseDTO salvar(AlistamentoRequestDTO dto){
@@ -42,7 +46,7 @@ public class AlistamentoService {
 
         Alistamento alistamentoSalvo = alistamentoRepository.save(alistamento);
 
-        return new AlistamentoResponseDTO(alistamento);
+        return new AlistamentoResponseDTO(alistamentoSalvo);
     }
 
     public List<AlistamentoResponseDTO> listar(){
@@ -103,17 +107,21 @@ public class AlistamentoService {
 
     public AlistamentoResponseDTO deletarAlistamento(Integer id){
         Alistamento alistamentoExistente = alistamentoRepository.findById(id).orElseThrow(() -> new AlistamentoNotFoundException("Alistamento não encontrado"));
-
-        // Quebra o relacionamento entre Usuario e Alistamento
-        Usuario usuario = alistamentoExistente.getUsuario();
-
-        if (usuario != null) {
-            usuario.setAlistamento(null);
-            usuarioRepository.save(usuario);
-        }
-
         alistamentoRepository.delete(alistamentoExistente);
         return new AlistamentoResponseDTO(alistamentoExistente);
+    }
+
+    public AlistamentoCompletoResponseDTO buscarCompleto(Integer id){
+        Alistamento alistamento = alistamentoRepository.findById(id)
+                .orElseThrow(() -> new AlistamentoNotFoundException("Alistamento não encontrado"));
+
+        List<DocumentoResponseDTO> documentos = documentoRepository
+                .findByAlistamentoId(id)
+                .stream()
+                .map(DocumentoResponseDTO::new)
+                .toList();
+
+        return new AlistamentoCompletoResponseDTO(alistamento, documentos);
     }
 
     private Usuario buscarUsuario(Integer id) {

@@ -1,5 +1,5 @@
 package com.example.tcc_alistamento.dto;
-import com.example.tcc_alistamento.entity.Alistamento;
+import com.example.tcc_alistamento.model.Alistamento;
 
 // Esse DTO representa o que sua API vai devolver quando consultar um alistamento
 
