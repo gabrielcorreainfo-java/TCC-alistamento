@@ -6,5 +6,6 @@ import java.time.LocalTime;
 public record AgendamentoRequestDTO(LocalDate dataAgendamento,
                                     LocalTime horario,
                                     Integer idAlistamento,
-                                    Integer idLocal) {
+                                    Integer idLocal,
+                                    Integer idMedico) {
 }

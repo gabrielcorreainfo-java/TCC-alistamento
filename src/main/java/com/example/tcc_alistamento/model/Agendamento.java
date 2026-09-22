@@ -6,11 +6,9 @@ import lombok.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 @Entity
 @Table(name = "Agendamento")
 public class Agendamento {
@@ -32,4 +30,14 @@ public class Agendamento {
     @ManyToOne
     @JoinColumn(name = "id_local", nullable = false)
     private Local local;
+
+    @ManyToOne
+    @JoinColumn(name = "id_medico", nullable = false)
+    private Medico medico;
+
+    @Column(nullable = false)
+    private Boolean confirmado = false;
+
+    @Column(nullable = false, length = 20)
+    private String status = "Agendado";
 }

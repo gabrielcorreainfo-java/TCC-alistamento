@@ -5,8 +5,7 @@ import lombok.*;
 
 @Entity
 @Table(name = "Local")
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class Local {

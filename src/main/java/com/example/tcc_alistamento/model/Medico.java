@@ -3,11 +3,10 @@ package com.example.tcc_alistamento.model;
 import jakarta.persistence.*;
 import lombok.*;
 
-@Getter
-@Setter
+
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Data
 @Entity
 @Table(name = "Medico")
 public class Medico {

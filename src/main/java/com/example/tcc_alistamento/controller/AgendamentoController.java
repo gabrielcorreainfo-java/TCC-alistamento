@@ -57,4 +57,9 @@ public class AgendamentoController {
 
         return agendamentoService.deletar(id);
     }
+
+    @PatchMapping("/{id}/confirmar")
+    public AgendamentoResponseDTO confirmarPresenca(@PathVariable Integer id) {
+        return agendamentoService.confirmarPresenca(id);
+    }
 }

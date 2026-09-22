@@ -5,12 +5,15 @@ import com.example.tcc_alistamento.dto.AgendamentoResponseDTO;
 import com.example.tcc_alistamento.exceptions.AgendamentoNotFoundException;
 import com.example.tcc_alistamento.exceptions.AlistamentoNotFoundException;
 import com.example.tcc_alistamento.exceptions.LocalNotFoundException;
+import com.example.tcc_alistamento.exceptions.MedicoNotFoundException;
 import com.example.tcc_alistamento.model.Agendamento;
 import com.example.tcc_alistamento.model.Alistamento;
 import com.example.tcc_alistamento.model.Local;
+import com.example.tcc_alistamento.model.Medico;
 import com.example.tcc_alistamento.repository.AgendamentoRepository;
 import com.example.tcc_alistamento.repository.AlistamentoRepository;
 import com.example.tcc_alistamento.repository.LocalRepository;
+import com.example.tcc_alistamento.repository.MedicoRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,25 +23,27 @@ public class AgendamentoService {
     private final AgendamentoRepository agendamentoRepository;
     private final AlistamentoRepository alistamentoRepository;
     private final LocalRepository localRepository;
+    private final MedicoRepository medicoRepository;
+
 
     public AgendamentoService(
             AgendamentoRepository agendamentoRepository,
             AlistamentoRepository alistamentoRepository,
-            LocalRepository localRepository) {
+            LocalRepository localRepository,
+            MedicoRepository medicoRepository) {
 
         this.agendamentoRepository = agendamentoRepository;
         this.alistamentoRepository = alistamentoRepository;
         this.localRepository = localRepository;
+        this.medicoRepository = medicoRepository;
+
     }
 
     public AgendamentoResponseDTO salvar(AgendamentoRequestDTO dto) {
 
-        Alistamento alistamento =
-                buscarAlistamentoPorId(dto.idAlistamento());
-
-        Local local =
-                buscarLocalPorId(dto.idLocal());
-
+        Alistamento alistamento = buscarAlistamentoPorId(dto.idAlistamento());
+        Local local = buscarLocalPorId(dto.idLocal());
+        Medico medico = buscarMedicoPorId(dto.idMedico());
         Agendamento agendamento = new Agendamento();
 
         agendamento.setDataAgendamento(dto.dataAgendamento());
@@ -115,6 +120,15 @@ public class AgendamentoService {
         return new AgendamentoResponseDTO(agendamentoAtualizado);
     }
 
+    // usuário só confirma presença
+    public AgendamentoResponseDTO confirmarPresenca(Integer id) {
+        Agendamento agendamento = buscarAgendamentoPorId(id);
+        agendamento.setConfirmado(true);
+
+        Agendamento agendamentoAtualizado = agendamentoRepository.save(agendamento);
+        return new AgendamentoResponseDTO(agendamentoAtualizado);
+    }
+
     public AgendamentoResponseDTO deletar(Integer id) {
 
         Agendamento agendamento = buscarAgendamentoPorId(id);
@@ -140,5 +154,9 @@ public class AgendamentoService {
         return localRepository.findById(id)
                 .orElseThrow(() ->
                         new LocalNotFoundException("Local não encontrado"));
+    }
+    private Medico buscarMedicoPorId(Integer id) {
+        return medicoRepository.findById(id)
+                .orElseThrow(() -> new MedicoNotFoundException("Médico não encontrado"));
     }
 }

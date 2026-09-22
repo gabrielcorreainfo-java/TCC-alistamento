@@ -13,7 +13,6 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "Documento")
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Documento {
@@ -49,6 +48,9 @@ public class Documento {
 
     @Column(name = "data_envio", nullable = false)
     private LocalDateTime dataEnvio;
+
+    @Column(nullable = false, length = 20)
+    private String status = "Em análise";
 
     @ManyToOne
     @JoinColumn(name = "id_usuario", nullable = false)

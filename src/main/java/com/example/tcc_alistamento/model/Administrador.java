@@ -6,13 +6,12 @@ import lombok.*;
 
 import java.util.List;
 
-@Getter
-@Setter
+@Data
+@Entity
 @Table(name = "Administrador")
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
-@Entity
+
 public class Administrador {
 
     @Id

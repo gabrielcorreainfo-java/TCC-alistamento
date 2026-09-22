@@ -2,6 +2,7 @@ package com.example.tcc_alistamento.service;
 
 import com.example.tcc_alistamento.dto.DocumentoRequestDTO;
 import com.example.tcc_alistamento.dto.DocumentoResponseDTO;
+import com.example.tcc_alistamento.dto.DocumentoStatusRequestDTO;
 import com.example.tcc_alistamento.exceptions.AlistamentoNotFoundException;
 import com.example.tcc_alistamento.exceptions.DocumentoNotFoundException;
 import com.example.tcc_alistamento.exceptions.TipoDeDocumentoNotFoundException;
@@ -189,6 +190,14 @@ public class DocumentoService {
         documentoRepository.delete(documento);
 
         return new DocumentoResponseDTO(documento);
+    }
+
+    public DocumentoResponseDTO atualizarStatus(Integer id, DocumentoStatusRequestDTO dto) {
+        Documento documento = buscarDocumento(id);
+        documento.setStatus(dto.status());
+
+        Documento documentoAtualizado = documentoRepository.save(documento);
+        return new DocumentoResponseDTO(documentoAtualizado);
     }
 
     private Documento buscarDocumento(Integer id) {

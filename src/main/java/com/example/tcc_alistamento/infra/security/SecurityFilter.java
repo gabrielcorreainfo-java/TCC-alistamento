@@ -19,15 +19,12 @@ import java.io.IOException;
 @Component
 
 // Gera uma vez a cada requisição
-public class Securityfilter extends OncePerRequestFilter {
+public class SecurityFilter extends OncePerRequestFilter {
     @Autowired
     TokenService tokenService;
 
     @Autowired
     AuthenticationService authenticationService;
-
-    @Autowired
-    UsuarioRepository usuarioRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {

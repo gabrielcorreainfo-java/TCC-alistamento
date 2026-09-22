@@ -64,17 +64,10 @@ public class UsuarioService {
     }
 
     public UsuarioResponseDTO atualizarUsuario(Integer id, UsuarioRequestDTO dto){
-
-        // Chama o método buscarPorId(), que procura o alistamento no banco
-        // e retorna o objeto encontrado.
-        // O resultado é armazenado na variável alistamentoExistente.
         Usuario usuarioExistente = buscarUsuarioPorId(id);
 
-        //Ele copia todos os atributos de Usuario para usuarioExistente
-        //Ele faz um set automático de todos os atributos menos o Id
-        //BeanUtils.copyProperties(origem(JSON da requisição), destino(Objeto buscado no Banco));
         BeanUtils.copyProperties(dto, usuarioExistente, "id");
-        usuarioRepository.save(usuarioExistente);
+        usuarioExistente.setSenha(passwordEncoder.encode(dto.senha()));
 
         return new UsuarioResponseDTO(usuarioRepository.save(usuarioExistente));
     }

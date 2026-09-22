@@ -9,6 +9,7 @@ import com.example.tcc_alistamento.model.Usuario;
 import com.example.tcc_alistamento.repository.UsuarioRepository;
 import com.example.tcc_alistamento.service.UsuarioService;
 import jakarta.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -34,7 +35,9 @@ public class UsuarioController {
 
 
     // Service responsável pelas regras de negócio do usuário.
+    @Autowired
     private final UsuarioService usuarioService;
+    @Autowired
     private final UsuarioRepository repository;
 
     // Injeção de dependência da UsuarioService.

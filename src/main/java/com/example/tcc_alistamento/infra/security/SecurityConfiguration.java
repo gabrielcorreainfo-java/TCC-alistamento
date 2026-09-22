@@ -26,7 +26,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfiguration {
     @Autowired
-    Securityfilter securityfilter;
+    SecurityFilter securityfilter;
 
     // Pode instancia nossa classe
     @Bean
@@ -38,12 +38,38 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // Raquisições HTTP que sejam atualizadas
                 .authorizeHttpRequests(authorize -> authorize
-                        // filtros para processar as requisições
+                        // Público
                         .requestMatchers(HttpMethod.POST, "/usuario").permitAll()
                         .requestMatchers(HttpMethod.POST, "/usuario/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/administrador/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/medico/login").permitAll()
-                        // O resto dos métodos só precisa apenas estar autenticado
+
+                        // Usuário
+                        .requestMatchers(HttpMethod.POST, "/alistamento").hasAuthority("USER")
+                        .requestMatchers(HttpMethod.GET, "/usuario/*/alistamento").hasAuthority("USER")
+                        .requestMatchers(HttpMethod.GET, "/alistamento/*/completo").hasAuthority("USER")
+                        .requestMatchers(HttpMethod.POST, "/documentos").hasAuthority("USER")
+                        .requestMatchers(HttpMethod.DELETE, "/documentos/*").hasAuthority("USER")
+                        .requestMatchers(HttpMethod.PATCH, "/agendamentos/*/confirmar").hasAuthority("USER")
+
+                        // Administrador
+                        .requestMatchers(HttpMethod.PUT, "/usuario/*").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/usuario/*").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/alistamento/*").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/administrador").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/medico").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/medico/*").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/medico/*").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/agendamentos").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/documentos/*/status").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/avaliacoes-medicas/*").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/avaliacoes-medicas/*").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/avaliacoes-medicas/*").hasAuthority("ADMIN")
+
+                        // Médico
+                        .requestMatchers(HttpMethod.POST, "/avaliacoes-medicas").hasAuthority("MEDICO")
+
+                        // Resto: só precisa estar autenticado (algum dos 3 papéis)
                         .anyRequest().authenticated()
                 )
                 // Filtro para verificar o status do usuario antes de cair nos filtros dos endpoints

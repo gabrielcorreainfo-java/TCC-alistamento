@@ -5,9 +5,8 @@ import com.example.tcc_alistamento.dto.MedicoResponseDTO;
 import com.example.tcc_alistamento.exceptions.MedicoNotFoundException;
 import com.example.tcc_alistamento.model.Medico;
 import com.example.tcc_alistamento.repository.MedicoRepository;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
+
 
 import java.util.List;
 
@@ -111,7 +110,7 @@ public class MedicoService {
     }
 
     // Método auxiliar para buscar médico.
-    private Medico buscarMedico(Integer id) {
+    public Medico buscarMedico(Integer id) {
 
         return medicoRepository.findById(id)
                 .orElseThrow(() ->
