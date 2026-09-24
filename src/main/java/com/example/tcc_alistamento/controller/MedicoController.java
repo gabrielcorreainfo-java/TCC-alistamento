@@ -44,7 +44,7 @@ public class MedicoController {
 
         var token = tokenService.generateToken((UserDetails) auth.getPrincipal());
 
-        return ResponseEntity.ok(new LoginResponseDTO(token));
+        return ResponseEntity.ok(new LoginResponseDTO(token, "MEDICO"));
     }
 
     // Endpoint para listar todos os médicos cadastrados.

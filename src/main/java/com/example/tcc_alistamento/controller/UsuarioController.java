@@ -60,7 +60,7 @@ public class UsuarioController {
         var usernamePassword = new UsernamePasswordAuthenticationToken(dto.email(),dto.senha());
         var auth = authenticationManager.authenticate(usernamePassword);
         var token = tokenService.generateToken((UserDetails) auth.getPrincipal());
-        return ResponseEntity.ok(new LoginResponseDTO(token));
+        return ResponseEntity.ok(new LoginResponseDTO(token, "USER"));
     }
 
     // Endpoint para listar todos os usuários cadastrados.

@@ -39,7 +39,7 @@ public class SecurityFilter extends OncePerRequestFilter {
        filterChain.doFilter(request, response);
     }
     private String recoreyToken(HttpServletRequest request){
-        var authHeader = request.getHeader("Authentization");
+        var authHeader = request.getHeader("Authorization");
         if (authHeader == null) return null;
         return authHeader.replace("Bearer ", "");
     }

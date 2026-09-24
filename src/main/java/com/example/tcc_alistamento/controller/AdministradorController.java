@@ -38,7 +38,7 @@ public class AdministradorController {
 
         var token = tokenService.generateToken((UserDetails) auth.getPrincipal());
 
-        return ResponseEntity.ok(new LoginResponseDTO(token));
+        return ResponseEntity.ok(new LoginResponseDTO(token, "ADMIN"));
     }
 
     @GetMapping
