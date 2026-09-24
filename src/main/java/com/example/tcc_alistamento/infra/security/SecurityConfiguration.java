@@ -69,6 +69,10 @@ public class SecurityConfiguration {
                         // Médico
                         .requestMatchers(HttpMethod.POST, "/avaliacoes-medicas").hasAuthority("MEDICO")
 
+
+                        .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+
+
                         // Resto: só precisa estar autenticado (algum dos 3 papéis)
                         .anyRequest().authenticated()
                 )

@@ -2,6 +2,7 @@ package com.example.tcc_alistamento.controller;
 
 import com.example.tcc_alistamento.dto.DocumentoRequestDTO;
 import com.example.tcc_alistamento.dto.DocumentoResponseDTO;
+import com.example.tcc_alistamento.dto.DocumentoStatusRequestDTO;
 import com.example.tcc_alistamento.service.DocumentoService;
 import org.springframework.web.bind.annotation.*;
 
@@ -56,4 +57,11 @@ public class DocumentoController {
     public DocumentoResponseDTO deletarDocumento(@PathVariable Integer id) {
         return documentoService.deletar(id);
     }
+
+    @PatchMapping("/{id}/status")
+    public DocumentoResponseDTO atualizarStatus(@PathVariable Integer id, @RequestBody DocumentoStatusRequestDTO dto) {
+        return documentoService.atualizarStatus(id, dto);
+    }
 }
+
+

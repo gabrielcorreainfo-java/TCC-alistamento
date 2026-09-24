@@ -51,6 +51,7 @@ public class AgendamentoService {
 
         agendamento.setAlistamento(alistamento);
         agendamento.setLocal(local);
+        agendamento.setMedico(medico);
 
         Agendamento agendamentoSalvo = agendamentoRepository.save(agendamento);
 
