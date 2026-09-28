@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -29,12 +30,19 @@ public class SecurityFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
        var token = this.recoreyToken(request);
-       if(token != null){
+       if(token != null) {
+           // Retorna o e-mail do token, ou "" se o token for inválido ou estiver vencido
            var login = tokenService.ValidateToken(token);
-           UserDetails user = authenticationService.loadUserByUsername(login);
 
-           var authentication = new UsernamePasswordAuthenticationToken(user,null,user.getAuthorities());
-           SecurityContextHolder.getContext().setAuthentication(authentication);
+           if (!login.isEmpty()) {
+               try {
+                   UserDetails user = authenticationService.loadUserByUsername(login);
+                   var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+                   SecurityContextHolder.getContext().setAuthentication(authentication);
+               } catch (UsernameNotFoundException ex) {
+                   // O usuário do token foi apagado: a requisição segue sem autenticação
+               }
+           }
        }
        filterChain.doFilter(request, response);
     }

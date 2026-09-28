@@ -30,9 +30,10 @@ public class AdministradorService {
     public AdministradorResponseDTO salvar(AdministradorRequestDTO dto){
 
         Administrador administrador = new Administrador();
-
-        BeanUtils.copyProperties(dto, administrador,"id");
-
+        administrador.setNomeAdmin(dto.nomeAdmin());
+        administrador.setEmailAdmin(dto.emailAdmin());
+        // A senha precisa ser criptografada, senão o login com BCrypt não funciona
+        administrador.setSenhaAdmin(passwordEncoder.encode(dto.senhaAdmin()));
         administradorRepository.save(administrador);
 
         return new AdministradorResponseDTO(administrador);
@@ -87,13 +88,14 @@ public class AdministradorService {
     public AdministradorResponseDTO atualizar(Integer id, AdministradorRequestDTO dto){
 
         Administrador administradorExistente = buscarEntidadePorId(id);
-
-        BeanUtils.copyProperties(dto,administradorExistente,"id");
-
+        administradorExistente.setNomeAdmin(dto.nomeAdmin());
+        administradorExistente.setEmailAdmin(dto.emailAdmin());
+        // Só troca a senha se uma nova foi enviada
+        if (dto.senhaAdmin() != null && !dto.senhaAdmin().isBlank()) {
+            administradorExistente.setSenhaAdmin(passwordEncoder.encode(dto.senhaAdmin()));
+        }
         administradorRepository.save(administradorExistente);
-
         return new AdministradorResponseDTO(administradorExistente);
-
     }
 
     public AdministradorResponseDTO atualizarParcial(Integer id, AdministradorRequestDTO dto){
@@ -109,9 +111,10 @@ public class AdministradorService {
             adminExistente.setEmailAdmin(dto.emailAdmin());
         }
 
-        if (dto.senhaAdmin() != null) {
-            adminExistente.setSenhaAdmin(dto.senhaAdmin());
+        if (dto.senhaAdmin() != null && !dto.senhaAdmin().isBlank()) {
+            adminExistente.setSenhaAdmin(passwordEncoder.encode(dto.senhaAdmin()));
         }
+
         administradorRepository.save(adminExistente);
 
         return new AdministradorResponseDTO(adminExistente);

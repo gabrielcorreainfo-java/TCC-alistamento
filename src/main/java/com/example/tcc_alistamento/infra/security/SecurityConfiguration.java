@@ -8,7 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -16,6 +18,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 // Classe que contém configurações da aplicação
@@ -34,23 +37,32 @@ public class SecurityConfiguration {
         return httpSecurity
                 // desativa a proteção CRSF baseada na autentição por sessão
                 .csrf(csrf -> csrf.disable())
+                // aplica o CORS configurado no CorsConfig
+                .cors(Customizer.withDefaults())
                 // Trabalha com a politica STATELESS
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // Raquisições HTTP que sejam atualizadas
                 .authorizeHttpRequests(authorize -> authorize
+                        // Página de erro do Spring e requisições de pré-verificação do navegador
+                        .requestMatchers("/error").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
                         // Público
                         .requestMatchers(HttpMethod.POST, "/usuario").permitAll()
                         .requestMatchers(HttpMethod.POST, "/usuario/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/administrador/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/medico/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
 
                         // Usuário
                         .requestMatchers(HttpMethod.POST, "/alistamento").hasAuthority("USER")
                         .requestMatchers(HttpMethod.GET, "/usuario/*/alistamento").hasAuthority("USER")
                         .requestMatchers(HttpMethod.GET, "/alistamento/*/completo").hasAuthority("USER")
                         .requestMatchers(HttpMethod.POST, "/documentos").hasAuthority("USER")
-                        .requestMatchers(HttpMethod.DELETE, "/documentos/*").hasAuthority("USER")
                         .requestMatchers(HttpMethod.PATCH, "/agendamentos/*/confirmar").hasAuthority("USER")
+
+                        // Usuário e administrador (o admin apaga os documentos ao excluir um cidadão)
+                        .requestMatchers(HttpMethod.DELETE, "/documentos/*").hasAnyAuthority("USER", "ADMIN")
 
                         // Administrador
                         .requestMatchers(HttpMethod.PUT, "/usuario/*").hasAuthority("ADMIN")
@@ -76,6 +88,8 @@ public class SecurityConfiguration {
                         // Resto: só precisa estar autenticado (algum dos 3 papéis)
                         .anyRequest().authenticated()
                 )
+                // Sem token (ou com token inválido) a API responde 401 em vez de 403
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
                 // Filtro para verificar o status do usuario antes de cair nos filtros dos endpoints
                 .addFilterBefore(securityfilter, UsernamePasswordAuthenticationFilter.class)
                 .build();

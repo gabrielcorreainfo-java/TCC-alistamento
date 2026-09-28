@@ -1,45 +1,48 @@
 package com.example.tcc_alistamento.config;
 
-
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
+
+import java.util.Arrays;
 
 /*
 CORS é uma regra de segurança que existe nos navegadores
 para controlar quem pode acessar uma API.
+
+Esta configuração é aplicada pelo Spring Security
+(no SecurityConfiguration, pelo .cors(...)).
  */
 @Configuration
 public class CorsConfig {
 
-    // Cria objeto que o Spring gerencia
-    // CorsFilter ele filtra o caminho da requisição, verificando se ela pode entrar
+    // Endereços do front que podem acessar a API, separados por vírgula
+    @Value("${api.cors.origens}")
+    private String origens;
+
     @Bean
-    public CorsFilter corsFilter(){
+    public CorsConfigurationSource corsConfigurationSource() {
 
-        // Guardar as configurações CORS
-        UrlBasedCorsConfigurationSource source =
-                new UrlBasedCorsConfigurationSource();
-
-        //  cria a configuração
+        // Cria a configuração
         CorsConfiguration config = new CorsConfiguration();
 
-        // Permite o Angular acessar a API
-        config.addAllowedOrigin("http://localhost:4200");
+        // Permite os endereços do front configurados
+        config.setAllowedOrigins(Arrays.stream(origens.split(","))
+                .map(String::trim)
+                .toList());
 
-        // Permiti o uso de todos os métodos HTTP
+        // Permite o uso de todos os métodos HTTP
         config.addAllowedMethod("*");
 
-        // Permite todos os headers
+        // Permite todos os headers (inclusive o Authorization com o token)
         config.addAllowedHeader("*");
 
         // Aplica a configuração para todas as rotas da API
-        source.registerCorsConfiguration("/**",config);
-
-        // cria e devvolve o filtro para o Spring usar
-        return new CorsFilter(source);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
-
 }

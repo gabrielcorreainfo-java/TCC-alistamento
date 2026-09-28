@@ -22,12 +22,13 @@ public class MedicoController {
     private final MedicoService medicoService;
     private final PasswordEncoder passwordEncoder;
     private AuthenticationManager authenticationManager;
-    TokenService tokenService;
+    private final TokenService tokenService;
 
     // Injeção de dependência da MedicoService.
-    public MedicoController(MedicoService medicoService, PasswordEncoder passwordEncoder) {
+    public MedicoController(MedicoService medicoService, PasswordEncoder passwordEncoder, TokenService tokenService) {
         this.medicoService = medicoService;
         this.passwordEncoder = passwordEncoder;
+        this.tokenService = tokenService;
     }
 
     // Endpoint para cadastrar um novo médico.

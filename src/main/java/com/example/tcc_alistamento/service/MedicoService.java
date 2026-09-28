@@ -6,6 +6,7 @@ import com.example.tcc_alistamento.exceptions.MedicoNotFoundException;
 import com.example.tcc_alistamento.model.Medico;
 import com.example.tcc_alistamento.repository.MedicoRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 
 import java.util.List;
@@ -13,10 +14,12 @@ import java.util.List;
 @Service
 public class MedicoService {
     private final MedicoRepository medicoRepository;
+    private final PasswordEncoder passwordEncoder;
 
     // Injeção de dependência da MedicoRepository.
-    public MedicoService(MedicoRepository medicoRepository) {
+    public MedicoService(MedicoRepository medicoRepository, PasswordEncoder passwordEncoder) {
         this.medicoRepository = medicoRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     // Cadastrar médico.
@@ -29,7 +32,7 @@ public class MedicoService {
         medico.setEspecialidade(dto.especialidade());
         medico.setTelefoneMedico(dto.telefoneMedico());
         medico.setEmailMedico(dto.emailMedico());
-        medico.setSenhaMedico(dto.senhaMedico());
+        medico.setSenhaMedico(passwordEncoder.encode(dto.senhaMedico()));
         return new MedicoResponseDTO(medicoRepository.save(medico));
     }
 
@@ -63,6 +66,9 @@ public class MedicoService {
         medico.setEspecialidade(dto.especialidade());
         medico.setTelefoneMedico(dto.telefoneMedico());
         medico.setEmailMedico(dto.emailMedico());
+        if (dto.senhaMedico() != null && !dto.senhaMedico().isBlank()) {
+            medico.setSenhaMedico(passwordEncoder.encode(dto.senhaMedico()));
+        }
 
         Medico medicoAtualizado = medicoRepository.save(medico);
 
@@ -92,6 +98,10 @@ public class MedicoService {
 
         if (dto.emailMedico() != null) {
             medico.setEmailMedico(dto.emailMedico());
+        }
+
+        if (dto.senhaMedico() != null && !dto.senhaMedico().isBlank()) {
+            medico.setSenhaMedico(passwordEncoder.encode(dto.senhaMedico()));
         }
 
         Medico medicoAtualizado = medicoRepository.save(medico);

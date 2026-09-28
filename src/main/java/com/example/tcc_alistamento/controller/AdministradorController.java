@@ -18,12 +18,14 @@ import java.util.List;
 @RequestMapping("/administrador")
 public class AdministradorController {
     private final AdministradorService administradorService;
-    TokenService tokenService;
-    AuthenticationManager authenticationManager;
+    private final TokenService tokenService;
+    private final AuthenticationManager authenticationManager;
 
 
-    public AdministradorController (AdministradorService administradorService) {
+    public AdministradorController (AdministradorService administradorService, TokenService tokenService, AuthenticationManager authenticationManager) {
     this.administradorService = administradorService;
+        this.tokenService = tokenService;
+        this.authenticationManager = authenticationManager;
     }
 
     @PostMapping

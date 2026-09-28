@@ -40,8 +40,7 @@ public class DocumentoController {
 
     // Endpoint para atualizar todo registro do documento.
     @PutMapping("/{id}")
-    public DocumentoResponseDTO atualizarDocumento(@PathVariable Integer id,
-                                                   @RequestBody DocumentoRequestDTO dto) {
+    public DocumentoResponseDTO atualizarDocumento(@PathVariable Integer id, @RequestBody DocumentoRequestDTO dto) {
         return documentoService.atualizar(id, dto);
     }
 

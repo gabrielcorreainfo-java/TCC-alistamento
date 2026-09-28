@@ -9,7 +9,22 @@ public record UsuarioResponseDTO(Integer id,
                                  LocalDate dataNascimento,
                                  String email,
                                  String telefone,
-                                 String cpf) {
+                                 String cpf,
+                                 String nomePai,
+                                 String nomeMae,
+                                 String estadoCivil,
+                                 String uf,
+                                 String escolaridade,
+                                 String rg,
+                                 String localNascimento,
+                                 String cep,
+                                 String bairro,
+                                 String municipio,
+                                 String paisResidencia,
+                                 String zonaResidencial,
+                                 String numeroResidencia,
+                                 String logradouro,
+                                 String estado) {
 
     public UsuarioResponseDTO(Usuario usuario) {
         this(
@@ -18,7 +33,22 @@ public record UsuarioResponseDTO(Integer id,
                 usuario.getDataNascimento(),
                 usuario.getEmail(),
                 usuario.getTelefone(),
-                usuario.getCpf()
+                usuario.getCpf(),
+                usuario.getNomePai(),
+                usuario.getNomeMae(),
+                usuario.getEstadoCivil(),
+                usuario.getUf(),
+                usuario.getEscolaridade(),
+                usuario.getRg(),
+                usuario.getLocalNascimento(),
+                usuario.getCep(),
+                usuario.getBairro(),
+                usuario.getMunicipio(),
+                usuario.getPaisResidencia(),
+                usuario.getZonaResidencial(),
+                usuario.getNumeroResidencia(),
+                usuario.getLogradouro(),
+                usuario.getEstado()
         );
     }
 }
