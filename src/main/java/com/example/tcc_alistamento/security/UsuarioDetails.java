@@ -12,7 +12,7 @@ import java.util.List;
 // Representa a classe que vai dizer ao Spring Security que ele é Usuário
 // Fazendo a ponte entre a entidade e o Spirng Security
 
-public class UsuarioDetails implements UserDetails {
+public class UsuarioDetails implements UsuarioAutenticado {
     private final Usuario usuario;
 
     public UsuarioDetails(Usuario usuario) {
@@ -34,10 +34,9 @@ public class UsuarioDetails implements UserDetails {
                 )
         );
     }
-
     @Override
     public String getPassword() {
-        // Retorna a senha do usuário.
+        // Retorna a senha do usuário (o hash BCrypt guardado no banco).
         return usuario.getSenha();
     }
 
@@ -69,5 +68,22 @@ public class UsuarioDetails implements UserDetails {
     public boolean isEnabled() {
         // Informa se o usuário está ativo.
         return true;
+    }
+
+    // ----- Dados de quem está logado (interface UsuarioAutenticado) -----
+
+    @Override
+    public Integer getId() {
+        return usuario.getId();
+    }
+
+    @Override
+    public String getNome() {
+        return usuario.getNome();
+    }
+
+    @Override
+    public String getPerfil() {
+        return RolesUsers.USER.getRole();
     }
 }

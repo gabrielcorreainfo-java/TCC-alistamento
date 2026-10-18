@@ -1,10 +1,6 @@
 // toda infra (configuração) relaciona a minha segurança
 package com.example.tcc_alistamento.infra.security;
 
-// Classe de configuração de segurança da aplicação
-// Destivando as funçõwa do Spring Security e colocando a nossa
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -21,90 +17,114 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-// Classe que contém configurações da aplicação
-@Configuration
+/*
+Configuração central da segurança da API.
 
-// Habilita os recursos de segurança do web do Security
-// e use configuração de segurança que eu definir aqui
+Duas camadas de autorização:
+1. AQUI: o PERFIL (USER, MEDICO, ADMIN) pode usar esta rota?
+2. NOS SERVICES (ControleAcesso): o cidadão é DONO deste registro?
+ */
+@Configuration
 @EnableWebSecurity
 public class SecurityConfiguration {
-    @Autowired
-    SecurityFilter securityfilter;
 
-    // Pode instancia nossa classe
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity){
-        return httpSecurity
-                // desativa a proteção CRSF baseada na autentição por sessão
-                .csrf(csrf -> csrf.disable())
-                // aplica o CORS configurado no CorsConfig
-                .cors(Customizer.withDefaults())
-                // Trabalha com a politica STATELESS
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // Raquisições HTTP que sejam atualizadas
-                .authorizeHttpRequests(authorize -> authorize
-                        // Página de erro do Spring e requisições de pré-verificação do navegador
-                        .requestMatchers("/error").permitAll()
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+    private static final String USER = "USER";
+    private static final String MEDICO = "MEDICO";
+    private static final String ADMIN = "ADMIN";
 
-                        // Público
-                        .requestMatchers(HttpMethod.POST, "/usuario").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/usuario/login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/administrador/login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/medico/login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+    private final SecurityFilter securityFilter;
 
-                        // Usuário
-                        .requestMatchers(HttpMethod.POST, "/alistamento").hasAuthority("USER")
-                        .requestMatchers(HttpMethod.GET, "/usuario/*/alistamento").hasAuthority("USER")
-                        .requestMatchers(HttpMethod.GET, "/alistamento/*/completo").hasAuthority("USER")
-                        .requestMatchers(HttpMethod.POST, "/documentos").hasAuthority("USER")
-                        .requestMatchers(HttpMethod.PATCH, "/agendamentos/*/confirmar").hasAuthority("USER")
-
-                        // Usuário e administrador (o admin apaga os documentos ao excluir um cidadão)
-                        .requestMatchers(HttpMethod.DELETE, "/documentos/*").hasAnyAuthority("USER", "ADMIN")
-
-                        // Administrador
-                        .requestMatchers(HttpMethod.PUT, "/usuario/*").hasAuthority("ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/usuario/*").hasAuthority("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/alistamento/*").hasAuthority("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/administrador").hasAuthority("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/medico").hasAuthority("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/medico/*").hasAuthority("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/medico/*").hasAuthority("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/agendamentos").hasAuthority("ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/documentos/*/status").hasAuthority("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/avaliacoes-medicas/*").hasAuthority("ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/avaliacoes-medicas/*").hasAuthority("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/avaliacoes-medicas/*").hasAuthority("ADMIN")
-
-                        // Médico
-                        .requestMatchers(HttpMethod.POST, "/avaliacoes-medicas").hasAuthority("MEDICO")
-
-
-                        .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
-
-
-                        // Resto: só precisa estar autenticado (algum dos 3 papéis)
-                        .anyRequest().authenticated()
-                )
-                // Sem token (ou com token inválido) a API responde 401 em vez de 403
-                .exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
-                // Filtro para verificar o status do usuario antes de cair nos filtros dos endpoints
-                .addFilterBefore(securityfilter, UsernamePasswordAuthenticationFilter.class)
-                .build();
+    public SecurityConfiguration(SecurityFilter securityFilter) {
+        this.securityFilter = securityFilter;
     }
 
     @Bean
-    // AuthenticationManager é o componente responsável por tentar autenticar o usuário.
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+        return httpSecurity
+                // CSRF ataca sessões com cookies; a API usa token no cabeçalho
+                .csrf(csrf -> csrf.disable())
+                // Aplica o CorsConfig (qual front pode chamar a API)
+                .cors(Customizer.withDefaults())
+                // Sem sessão no servidor: a identidade vem do token em cada requisição
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(authorize -> authorize
+
+                        // ----- Públicas -----
+                        .requestMatchers("/error").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/usuario").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/recuperacao-senha").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/cep/*").permitAll()
+
+                        // ----- Cidadão -----
+                        .requestMatchers(HttpMethod.POST, "/alistamento").hasAuthority(USER)
+                        .requestMatchers(HttpMethod.POST, "/documentos").hasAuthority(USER)
+                        .requestMatchers(HttpMethod.POST, "/documentos/*/arquivo").hasAuthority(USER)
+                        .requestMatchers(HttpMethod.PATCH, "/agendamentos/*/confirmar").hasAuthority(USER)
+
+                        // Cidadão (o próprio documento) ou administrador (ao excluir um cidadão)
+                        .requestMatchers(HttpMethod.DELETE, "/documentos/*").hasAnyAuthority(USER, ADMIN)
+
+                        // ----- Médico -----
+                        .requestMatchers(HttpMethod.POST, "/avaliacoes-medicas").hasAuthority(MEDICO)
+
+                        // ----- Listas completas (LGPD): só quem trabalha no processo -----
+                        .requestMatchers(HttpMethod.GET,
+                                "/usuario", "/alistamento", "/documentos",
+                                "/agendamentos", "/avaliacoes-medicas").hasAnyAuthority(ADMIN, MEDICO)
+
+                        // ----- Administrador -----
+                        .requestMatchers(HttpMethod.GET, "/recuperacao-senha").hasAuthority(ADMIN)
+                        .requestMatchers(HttpMethod.PATCH, "/recuperacao-senha/*/concluir").hasAuthority(ADMIN)
+
+                        .requestMatchers(HttpMethod.PUT, "/usuario/*").hasAuthority(ADMIN)
+                        .requestMatchers(HttpMethod.PATCH, "/usuario/*").hasAuthority(ADMIN)
+                        .requestMatchers(HttpMethod.DELETE, "/usuario/*").hasAuthority(ADMIN)
+
+                        .requestMatchers(HttpMethod.PUT, "/alistamento/*").hasAuthority(ADMIN)
+                        .requestMatchers(HttpMethod.DELETE, "/alistamento/*").hasAuthority(ADMIN)
+
+                        .requestMatchers(HttpMethod.PUT, "/documentos/*").hasAuthority(ADMIN)
+                        .requestMatchers(HttpMethod.PATCH, "/documentos/*").hasAuthority(ADMIN)
+                        .requestMatchers(HttpMethod.PATCH, "/documentos/*/status").hasAuthority(ADMIN)
+
+                        .requestMatchers(HttpMethod.POST, "/agendamentos").hasAuthority(ADMIN)
+                        .requestMatchers(HttpMethod.PUT, "/agendamentos/*").hasAuthority(ADMIN)
+                        .requestMatchers(HttpMethod.PATCH, "/agendamentos/*").hasAuthority(ADMIN)
+                        .requestMatchers(HttpMethod.DELETE, "/agendamentos/*").hasAuthority(ADMIN)
+
+                        .requestMatchers(HttpMethod.PUT, "/avaliacoes-medicas/*").hasAuthority(ADMIN)
+                        .requestMatchers(HttpMethod.PATCH, "/avaliacoes-medicas/*").hasAuthority(ADMIN)
+                        .requestMatchers(HttpMethod.DELETE, "/avaliacoes-medicas/*").hasAuthority(ADMIN)
+
+                        .requestMatchers(HttpMethod.POST, "/administrador", "/medico", "/local", "/tipos-documento").hasAuthority(ADMIN)
+                        .requestMatchers(HttpMethod.PUT, "/administrador/*", "/medico/*", "/local/*", "/tipos-documento/*").hasAuthority(ADMIN)
+                        .requestMatchers(HttpMethod.PATCH, "/administrador/*", "/medico/*", "/local/*", "/tipos-documento/*").hasAuthority(ADMIN)
+                        .requestMatchers(HttpMethod.DELETE, "/administrador/*", "/medico/*", "/local/*", "/tipos-documento/*").hasAuthority(ADMIN)
+
+                        // ----- Resto: basta estar logado -----
+                        // Ex.: GET /usuario/{id}, GET /alistamento/{id}/completo, PATCH /alistamento/{id}.
+                        // Nesses casos o ControleAcesso confere se o cidadão é o dono
+                        // e o AlistamentoService confere qual status cada perfil pode definir.
+                        .anyRequest().authenticated()
+                )
+                // Sem token, ou com token inválido: 401. Perfil sem permissão: 403.
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
+                // Nosso filtro lê o token antes dos filtros padrão do Spring
+                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
+                .build();
+    }
+
+    // Componente que executa o login (usa o AuthenticationService e o BCrypt)
+    @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
-    // Método responsável pela criptografia da nossas senhas
+    // BCrypt: hash irreversível das senhas
     @Bean
-    public PasswordEncoder passwordEncoder(){
-        // Classe para fazer criptografia das senhas
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 }

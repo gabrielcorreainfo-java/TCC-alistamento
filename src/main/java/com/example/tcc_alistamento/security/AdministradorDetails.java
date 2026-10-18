@@ -10,7 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 
-public class AdministradorDetails implements UserDetails {
+public class AdministradorDetails implements UsuarioAutenticado {
     private Administrador administrador;
 
     public AdministradorDetails(Administrador administrador){
@@ -25,7 +25,7 @@ public class AdministradorDetails implements UserDetails {
 
     @Override
     public String getPassword() {
-        // Retorna a senha do administrador.
+        // Retorna a senha do administrador (o hash BCrypt guardado no banco).
         return administrador.getSenhaAdmin();
     }
 
@@ -55,7 +55,25 @@ public class AdministradorDetails implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        // Informa se o Administrador está ativo.
+        // Informa se o administrador está ativo.
         return true;
+    }
+
+    // ----- Dados de quem está logado (interface UsuarioAutenticado) -----
+
+    @Override
+    public Integer getId() {
+        // id_admin: usado para registrar QUAL administrador analisou o alistamento
+        return administrador.getId();
+    }
+
+    @Override
+    public String getNome() {
+        return administrador.getNomeAdmin();
+    }
+
+    @Override
+    public String getPerfil() {
+        return RolesUsers.ADMIN.getRole();
     }
 }

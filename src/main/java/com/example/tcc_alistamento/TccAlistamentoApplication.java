@@ -4,7 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class TccAlistamentoApplication {
+public class            TccAlistamentoApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(TccAlistamentoApplication.class, args);

@@ -4,69 +4,53 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.example.tcc_alistamento.model.Usuario;
+import com.example.tcc_alistamento.security.UsuarioAutenticado;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-import java.time.temporal.ChronoUnit;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 
-// Responsável pela geração de token
+// Responsável por gerar e validar os tokens JWT
 @Service
 public class TokenService {
 
-    // Variavel de ambiente
+    private static final String EMISSOR = "alistamento-api";
+    private static final long HORAS_DE_VALIDADE = 2;
+
+    // Chave secreta que assina os tokens (variável de ambiente JWT_SECRET)
     @Value("${api.security.token.secret}")
     private String secret;
 
-
-    //  Parametro usuário para saber no token qual é o usuário autenticado e sua role
-    public String generateToken(UserDetails userDetails ){
-        try{
-            /*
-            algoritmo geração de token
-            algorithm recebe por parametro uma secret
-            Secret é chave privada que o seu backend usa para assinar e conferir se os JWTs são legítimos.
-            Sendo um fator imporatnte para a geração dos nossos tokens
-             */
-
+    public String generateToken(UsuarioAutenticado usuario) {
+        try {
             Algorithm algorithm = Algorithm.HMAC256(secret);
-            String token = JWT.create()
-                    // Quem criou o token
-                    .withIssuer("alistamento-api")
-                    // Entidade que vai receber
-                    .withSubject(userDetails.getUsername())
-                    // Tempo de expiração do token
-                    .withExpiresAt(getExpiretionDate())
-                    // fazer assinatura e a geração final
-                    .sign(algorithm);
-            return token;
+            Instant agora = Instant.now();
 
-            // quando nenhum dos parametros nao derem certo ele faz essa exceção
-        }catch(JWTCreationException ex ){
-            throw new RuntimeException("Error while generating token", ex);
+            return JWT.create()
+                    .withIssuer(EMISSOR)                       // quem criou o token
+                    .withSubject(usuario.getUsername())        // de quem é: o e-mail
+                    .withClaim("role", usuario.getPerfil())    // perfil (só informativo)
+                    .withIssuedAt(agora)                       // quando foi criado
+                    .withExpiresAt(agora.plus(HORAS_DE_VALIDADE, ChronoUnit.HOURS)) // vence em 2h
+                    .sign(algorithm);                          // assinatura
+
+        } catch (JWTCreationException ex) {
+            throw new RuntimeException("Erro ao gerar o token", ex);
         }
     }
 
-    public String ValidateToken(String token){
-        try{
+    // Devolve o e-mail do token, ou "" se o token for falso, alterado, vencido ou de outro emissor
+    public String ValidateToken(String token) {
+        try {
             Algorithm algorithm = Algorithm.HMAC256(secret);
             return JWT.require(algorithm)
-                    .withIssuer("alistamento-api")
+                    .withIssuer(EMISSOR)
                     .build()
                     .verify(token)
                     .getSubject();
-        }catch (JWTVerificationException ex ){
+        } catch (JWTVerificationException ex) {
             return "";
         }
-    }
-
-    // expiresAlt recebe um Instant
-    private Instant getExpiretionDate(){
-        // Pegou o tempo de agora adicionou 2H e transformou em um Instant e colocou no nosso time Zone de Brasilia
-        return LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-03:00"));
     }
 }

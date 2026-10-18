@@ -9,7 +9,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 
-public class MedicoDetails implements UserDetails {
+public class MedicoDetails implements UsuarioAutenticado {
 
     private Medico medico;
 
@@ -22,10 +22,9 @@ public class MedicoDetails implements UserDetails {
 
         return List.of(new SimpleGrantedAuthority(RolesUsers.MEDICO.getRole()));
     }
-
     @Override
     public String getPassword() {
-        // Retorna a senha do médico.
+        // Retorna a senha do médico (o hash BCrypt guardado no banco).
         return medico.getSenhaMedico();
     }
 
@@ -57,5 +56,23 @@ public class MedicoDetails implements UserDetails {
     public boolean isEnabled() {
         // Informa se o médico está ativo.
         return true;
+    }
+
+    // ----- Dados de quem está logado (interface UsuarioAutenticado) -----
+
+    @Override
+    public Integer getId() {
+        // id_medico: usado para saber QUAL médico registrou a avaliação
+        return medico.getId();
+    }
+
+    @Override
+    public String getNome() {
+        return medico.getNomeMedico();
+    }
+
+    @Override
+    public String getPerfil() {
+        return RolesUsers.MEDICO.getRole();
     }
 }

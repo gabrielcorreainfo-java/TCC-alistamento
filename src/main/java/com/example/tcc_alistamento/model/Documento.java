@@ -1,9 +1,8 @@
 package com.example.tcc_alistamento.model;
 
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -48,6 +47,15 @@ public class Documento {
 
     @Column(name = "data_envio", nullable = false)
     private LocalDateTime dataEnvio;
+
+    // Onde o arquivo (PDF ou imagem) foi guardado no servidor. Nunca é devolvido ao front.
+    @JsonIgnore
+    @Column(name = "caminho_arquivo", length = 255)
+    private String caminhoArquivo;
+
+    // Tipo do arquivo (application/pdf, image/png ou image/jpeg)
+    @Column(name = "tipo_arquivo", length = 100)
+    private String tipoArquivo;
 
     @Column(nullable = false, length = 20)
     private String status = "Em análise";

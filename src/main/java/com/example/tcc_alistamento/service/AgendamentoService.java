@@ -6,6 +6,7 @@ import com.example.tcc_alistamento.exceptions.AgendamentoNotFoundException;
 import com.example.tcc_alistamento.exceptions.AlistamentoNotFoundException;
 import com.example.tcc_alistamento.exceptions.LocalNotFoundException;
 import com.example.tcc_alistamento.exceptions.MedicoNotFoundException;
+import com.example.tcc_alistamento.infra.security.ControleAcesso;
 import com.example.tcc_alistamento.model.Agendamento;
 import com.example.tcc_alistamento.model.Alistamento;
 import com.example.tcc_alistamento.model.Local;
@@ -20,65 +21,64 @@ import java.util.List;
 
 @Service
 public class AgendamentoService {
+
     private final AgendamentoRepository agendamentoRepository;
     private final AlistamentoRepository alistamentoRepository;
     private final LocalRepository localRepository;
     private final MedicoRepository medicoRepository;
-
+    private final ControleAcesso controleAcesso;
 
     public AgendamentoService(
             AgendamentoRepository agendamentoRepository,
             AlistamentoRepository alistamentoRepository,
             LocalRepository localRepository,
-            MedicoRepository medicoRepository) {
+            MedicoRepository medicoRepository,
+            ControleAcesso controleAcesso) {
 
         this.agendamentoRepository = agendamentoRepository;
         this.alistamentoRepository = alistamentoRepository;
         this.localRepository = localRepository;
         this.medicoRepository = medicoRepository;
-
+        this.controleAcesso = controleAcesso;
     }
 
+    // Criação do agendamento: só ADMIN
     public AgendamentoResponseDTO salvar(AgendamentoRequestDTO dto) {
 
         Alistamento alistamento = buscarAlistamentoPorId(dto.idAlistamento());
         Local local = buscarLocalPorId(dto.idLocal());
         Medico medico = buscarMedicoPorId(dto.idMedico());
-        Agendamento agendamento = new Agendamento();
 
+        Agendamento agendamento = new Agendamento();
         agendamento.setDataAgendamento(dto.dataAgendamento());
         agendamento.setHorario(dto.horario());
-
         agendamento.setAlistamento(alistamento);
         agendamento.setLocal(local);
         agendamento.setMedico(medico);
 
-        Agendamento agendamentoSalvo = agendamentoRepository.save(agendamento);
-
-        return new AgendamentoResponseDTO(agendamentoSalvo);
+        return new AgendamentoResponseDTO(agendamentoRepository.save(agendamento));
     }
 
+    // Lista completa: só ADMIN e MEDICO
     public List<AgendamentoResponseDTO> listar() {
-
         return agendamentoRepository.findAll()
                 .stream()
                 .map(AgendamentoResponseDTO::new)
                 .toList();
     }
 
+    // O cidadão só vê o PRÓPRIO agendamento
     public AgendamentoResponseDTO buscarPorId(Integer id) {
-
         Agendamento agendamento = buscarAgendamentoPorId(id);
-
+        controleAcesso.exigirDonoDoAlistamento(agendamento.getAlistamento());
         return new AgendamentoResponseDTO(agendamento);
     }
 
+    // Edição completa: só ADMIN
     public AgendamentoResponseDTO atualizar(Integer id, AgendamentoRequestDTO dto) {
 
         Agendamento agendamento = buscarAgendamentoPorId(id);
-
         Alistamento alistamento = buscarAlistamentoPorId(dto.idAlistamento());
-
         Local local = buscarLocalPorId(dto.idLocal());
 
         agendamento.setDataAgendamento(dto.dataAgendamento());
@@ -86,76 +86,63 @@ public class AgendamentoService {
         agendamento.setAlistamento(alistamento);
         agendamento.setLocal(local);
 
-        Agendamento agendamentoAtualizado = agendamentoRepository.save(agendamento);
-
-        return new AgendamentoResponseDTO(agendamentoAtualizado);
+        return new AgendamentoResponseDTO(agendamentoRepository.save(agendamento));
     }
 
+    // Edição parcial: só ADMIN
     public AgendamentoResponseDTO atualizarParcial(Integer id, AgendamentoRequestDTO dto) {
 
-        Agendamento agendamento =
-                buscarAgendamentoPorId(id);
+        Agendamento agendamento = buscarAgendamentoPorId(id);
 
         if (dto.dataAgendamento() != null) {
             agendamento.setDataAgendamento(dto.dataAgendamento());
         }
-
         if (dto.horario() != null) {
             agendamento.setHorario(dto.horario());
         }
-
         if (dto.idAlistamento() != null) {
-
-            Alistamento alistamento = buscarAlistamentoPorId(dto.idAlistamento());
-            agendamento.setAlistamento(alistamento);
+            agendamento.setAlistamento(buscarAlistamentoPorId(dto.idAlistamento()));
         }
-
         if (dto.idLocal() != null) {
-
-            Local local = buscarLocalPorId(dto.idLocal());
-            agendamento.setLocal(local);
+            agendamento.setLocal(buscarLocalPorId(dto.idLocal()));
         }
 
-        Agendamento agendamentoAtualizado = agendamentoRepository.save(agendamento);
-
-        return new AgendamentoResponseDTO(agendamentoAtualizado);
+        return new AgendamentoResponseDTO(agendamentoRepository.save(agendamento));
     }
 
-    // usuário só confirma presença
+    // O cidadão confirma presença apenas no PRÓPRIO agendamento
     public AgendamentoResponseDTO confirmarPresenca(Integer id) {
         Agendamento agendamento = buscarAgendamentoPorId(id);
-        agendamento.setConfirmado(true);
+        controleAcesso.exigirDonoDoAlistamento(agendamento.getAlistamento());
 
-        Agendamento agendamentoAtualizado = agendamentoRepository.save(agendamento);
-        return new AgendamentoResponseDTO(agendamentoAtualizado);
+        agendamento.setConfirmado(true);
+        return new AgendamentoResponseDTO(agendamentoRepository.save(agendamento));
     }
 
+    // Exclusão: só ADMIN
     public AgendamentoResponseDTO deletar(Integer id) {
-
         Agendamento agendamento = buscarAgendamentoPorId(id);
-
         agendamentoRepository.delete(agendamento);
-
         return new AgendamentoResponseDTO(agendamento);
     }
 
+    // ----- Métodos auxiliares -----
+
     private Agendamento buscarAgendamentoPorId(Integer id) {
         return agendamentoRepository.findById(id)
-                .orElseThrow(() ->
-                        new AgendamentoNotFoundException("Agendamento não encontrado"));
+                .orElseThrow(() -> new AgendamentoNotFoundException("Agendamento não encontrado"));
     }
 
     private Alistamento buscarAlistamentoPorId(Integer id) {
         return alistamentoRepository.findById(id)
-                .orElseThrow(() ->
-                        new AlistamentoNotFoundException("Alistamento não encontrado"));
+                .orElseThrow(() -> new AlistamentoNotFoundException("Alistamento não encontrado"));
     }
 
     private Local buscarLocalPorId(Integer id) {
         return localRepository.findById(id)
-                .orElseThrow(() ->
-                        new LocalNotFoundException("Local não encontrado"));
+                .orElseThrow(() -> new LocalNotFoundException("Local não encontrado"));
     }
+
     private Medico buscarMedicoPorId(Integer id) {
         return medicoRepository.findById(id)
                 .orElseThrow(() -> new MedicoNotFoundException("Médico não encontrado"));

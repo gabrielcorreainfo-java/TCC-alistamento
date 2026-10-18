@@ -24,7 +24,9 @@ public record UsuarioResponseDTO(Integer id,
                                  String zonaResidencial,
                                  String numeroResidencia,
                                  String logradouro,
-                                 String estado) {
+                                 String estado,
+                                 String sexo,
+                                 String nacionalidade) {
 
     public UsuarioResponseDTO(Usuario usuario) {
         this(
@@ -48,7 +50,9 @@ public record UsuarioResponseDTO(Integer id,
                 usuario.getZonaResidencial(),
                 usuario.getNumeroResidencia(),
                 usuario.getLogradouro(),
-                usuario.getEstado()
+                usuario.getEstado(),
+                usuario.getSexo(),
+                usuario.getNacionalidade()
         );
     }
 }
