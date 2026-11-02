@@ -1,9 +1,9 @@
 package com.example.tcc_alistamento.service;
 
-import com.example.tcc_alistamento.dto.AvaliacaoMedicaRequestDTO;
-import com.example.tcc_alistamento.dto.AvaliacaoMedicaResponseDTO;
+import com.example.tcc_alistamento.dto.request.AvaliacaoMedicaRequestDTO;
+import com.example.tcc_alistamento.dto.response.AvaliacaoMedicaResponseDTO;
 import com.example.tcc_alistamento.exceptions.RegraDeNegocioException;
-import com.example.tcc_alistamento.infra.security.ControleAcesso;
+import com.example.tcc_alistamento.security.ControleAcesso;
 import com.example.tcc_alistamento.model.Alistamento;
 import com.example.tcc_alistamento.model.AvaliacaoMedica;
 import com.example.tcc_alistamento.model.Local;

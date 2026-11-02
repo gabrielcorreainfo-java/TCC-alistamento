@@ -1,11 +1,13 @@
 package com.example.tcc_alistamento.service;
 
-import com.example.tcc_alistamento.dto.LocalRequestDTO;
-import com.example.tcc_alistamento.dto.LocalResponseDTO;
+import com.example.tcc_alistamento.dto.request.LocalRequestDTO;
+import com.example.tcc_alistamento.dto.response.LocalResponseDTO;
 import com.example.tcc_alistamento.model.Local;
 import com.example.tcc_alistamento.repository.LocalRepository;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import com.example.tcc_alistamento.exceptions.RegraDeNegocioException;
+import org.springframework.http.HttpStatus;
 
 
 import java.util.List;
@@ -20,13 +22,9 @@ public class LocalService {
     }
 
     public LocalResponseDTO salvar(LocalRequestDTO dto) {
-
         Local local = new Local();
-
         BeanUtils.copyProperties(dto, local, "id");
-
         Local localSalvo = localRepository.save(local);
-
         return new LocalResponseDTO(localSalvo);
     }
 

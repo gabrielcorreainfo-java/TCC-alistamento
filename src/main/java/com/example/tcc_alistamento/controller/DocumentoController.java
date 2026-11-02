@@ -1,8 +1,8 @@
 package com.example.tcc_alistamento.controller;
 
-import com.example.tcc_alistamento.dto.DocumentoRequestDTO;
-import com.example.tcc_alistamento.dto.DocumentoResponseDTO;
-import com.example.tcc_alistamento.dto.DocumentoStatusRequestDTO;
+import com.example.tcc_alistamento.dto.request.DocumentoRequestDTO;
+import com.example.tcc_alistamento.dto.response.DocumentoResponseDTO;
+import com.example.tcc_alistamento.dto.request.DocumentoStatusRequestDTO;
 import com.example.tcc_alistamento.model.Documento;
 import com.example.tcc_alistamento.service.DocumentoService;
 import org.springframework.core.io.Resource;

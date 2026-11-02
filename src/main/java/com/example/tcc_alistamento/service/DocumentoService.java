@@ -1,10 +1,10 @@
 package com.example.tcc_alistamento.service;
 
-import com.example.tcc_alistamento.dto.DocumentoRequestDTO;
-import com.example.tcc_alistamento.dto.DocumentoResponseDTO;
-import com.example.tcc_alistamento.dto.DocumentoStatusRequestDTO;
+import com.example.tcc_alistamento.dto.request.DocumentoRequestDTO;
+import com.example.tcc_alistamento.dto.response.DocumentoResponseDTO;
+import com.example.tcc_alistamento.dto.request.DocumentoStatusRequestDTO;
 import com.example.tcc_alistamento.exceptions.RegraDeNegocioException;
-import com.example.tcc_alistamento.infra.security.ControleAcesso;
+import com.example.tcc_alistamento.security.ControleAcesso;
 import com.example.tcc_alistamento.model.Alistamento;
 import com.example.tcc_alistamento.model.Documento;
 import com.example.tcc_alistamento.model.TipoDocumento;
@@ -13,6 +13,7 @@ import com.example.tcc_alistamento.repository.AlistamentoRepository;
 import com.example.tcc_alistamento.repository.DocumentoRepository;
 import com.example.tcc_alistamento.repository.TipoDocumentoRepository;
 import com.example.tcc_alistamento.repository.UsuarioRepository;
+import com.example.tcc_alistamento.service.integracao.ArquivoService;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;

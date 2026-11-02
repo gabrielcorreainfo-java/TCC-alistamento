@@ -1,10 +1,11 @@
 package com.example.tcc_alistamento.service;
 
-import com.example.tcc_alistamento.dto.MedicoRequestDTO;
-import com.example.tcc_alistamento.dto.MedicoResponseDTO;
+import com.example.tcc_alistamento.dto.request.MedicoRequestDTO;
+import com.example.tcc_alistamento.dto.response.MedicoResponseDTO;
 import com.example.tcc_alistamento.exceptions.RegraDeNegocioException;
 import com.example.tcc_alistamento.model.Medico;
 import com.example.tcc_alistamento.repository.MedicoRepository;
+import com.example.tcc_alistamento.service.integracao.VerificadorEmail;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,15 +17,18 @@ import java.util.List;
 public class MedicoService {
     private final MedicoRepository medicoRepository;
     private final PasswordEncoder passwordEncoder;
+    private final VerificadorEmail verificadorEmail;
 
     // Injeção de dependência da MedicoRepository.
-    public MedicoService(MedicoRepository medicoRepository, PasswordEncoder passwordEncoder) {
+    public MedicoService(MedicoRepository medicoRepository, PasswordEncoder passwordEncoder, VerificadorEmail verificadorEmail) {
         this.medicoRepository = medicoRepository;
         this.passwordEncoder = passwordEncoder;
+        this.verificadorEmail = verificadorEmail;
     }
 
     // Cadastrar médico.
     public MedicoResponseDTO salvar(MedicoRequestDTO dto) {
+        verificadorEmail.exigirDisponivel(dto.emailMedico());
 
         Medico medico = new Medico();
 
@@ -36,9 +40,6 @@ public class MedicoService {
         medico.setSenhaMedico(passwordEncoder.encode(dto.senhaMedico()));
         return new MedicoResponseDTO(medicoRepository.save(medico));
     }
-
-    // login() removido — a autenticação agora passa pelo authenticationManager
-    // no MedicoController, igual já é feito para Usuario.
 
     // Listar todos os médicos.
     public List<MedicoResponseDTO> listar() {
@@ -67,6 +68,9 @@ public class MedicoService {
         medico.setEspecialidade(dto.especialidade());
         medico.setTelefoneMedico(dto.telefoneMedico());
         medico.setEmailMedico(dto.emailMedico());
+        if (dto.emailMedico() != null && !dto.emailMedico().equalsIgnoreCase(medico.getEmailMedico())) {
+            verificadorEmail.exigirDisponivel(dto.emailMedico());
+        }
         if (dto.senhaMedico() != null && !dto.senhaMedico().isBlank()) {
             medico.setSenhaMedico(passwordEncoder.encode(dto.senhaMedico()));
         }
@@ -97,7 +101,9 @@ public class MedicoService {
             medico.setTelefoneMedico(dto.telefoneMedico());
         }
 
-        if (dto.emailMedico() != null) {
+        // Só confere e troca se veio um e-mail diferente
+        if (dto.emailMedico() != null && !dto.emailMedico().equalsIgnoreCase(medico.getEmailMedico())) {
+            verificadorEmail.exigirDisponivel(dto.emailMedico());
             medico.setEmailMedico(dto.emailMedico());
         }
 

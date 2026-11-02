@@ -1,8 +1,8 @@
 package com.example.tcc_alistamento.service;
 
-import com.example.tcc_alistamento.dto.AgendamentoRequestDTO;
-import com.example.tcc_alistamento.dto.AgendamentoResponseDTO;
-import com.example.tcc_alistamento.infra.security.ControleAcesso;
+import com.example.tcc_alistamento.dto.request.AgendamentoRequestDTO;
+import com.example.tcc_alistamento.dto.response.AgendamentoResponseDTO;
+import com.example.tcc_alistamento.security.ControleAcesso;
 import com.example.tcc_alistamento.model.Agendamento;
 import com.example.tcc_alistamento.model.Alistamento;
 import com.example.tcc_alistamento.model.Local;
@@ -12,6 +12,8 @@ import com.example.tcc_alistamento.repository.AlistamentoRepository;
 import com.example.tcc_alistamento.repository.LocalRepository;
 import com.example.tcc_alistamento.repository.MedicoRepository;
 import org.springframework.stereotype.Service;
+import com.example.tcc_alistamento.exceptions.RegraDeNegocioException;
+import org.springframework.http.HttpStatus;
 
 import java.util.List;
 

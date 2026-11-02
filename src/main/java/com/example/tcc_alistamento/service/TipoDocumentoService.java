@@ -1,11 +1,13 @@
 package com.example.tcc_alistamento.service;
 
-import com.example.tcc_alistamento.dto.TipoDocumentoRequestDTO;
-import com.example.tcc_alistamento.dto.TipoDocumentoResponseDTO;
+import com.example.tcc_alistamento.dto.request.TipoDocumentoRequestDTO;
+import com.example.tcc_alistamento.dto.response.TipoDocumentoResponseDTO;
 import com.example.tcc_alistamento.model.TipoDocumento;
 import com.example.tcc_alistamento.repository.TipoDocumentoRepository;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import com.example.tcc_alistamento.exceptions.RegraDeNegocioException;
+import org.springframework.http.HttpStatus;
 
 import java.util.List;
 

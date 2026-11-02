@@ -1,7 +1,7 @@
 package com.example.tcc_alistamento.controller;
 
-import com.example.tcc_alistamento.dto.AgendamentoRequestDTO;
-import com.example.tcc_alistamento.dto.AgendamentoResponseDTO;
+import com.example.tcc_alistamento.dto.request.AgendamentoRequestDTO;
+import com.example.tcc_alistamento.dto.response.AgendamentoResponseDTO;
 import com.example.tcc_alistamento.service.AgendamentoService;
 import org.springframework.web.bind.annotation.*;
 

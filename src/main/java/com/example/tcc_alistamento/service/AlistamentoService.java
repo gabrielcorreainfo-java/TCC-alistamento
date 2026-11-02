@@ -1,11 +1,11 @@
 package com.example.tcc_alistamento.service;
 
-import com.example.tcc_alistamento.dto.AlistamentoCompletoResponseDTO;
-import com.example.tcc_alistamento.dto.AlistamentoRequestDTO;
-import com.example.tcc_alistamento.dto.AlistamentoResponseDTO;
-import com.example.tcc_alistamento.dto.DocumentoResponseDTO;
+import com.example.tcc_alistamento.dto.response.AlistamentoCompletoResponseDTO;
+import com.example.tcc_alistamento.dto.request.AlistamentoRequestDTO;
+import com.example.tcc_alistamento.dto.response.AlistamentoResponseDTO;
+import com.example.tcc_alistamento.dto.response.DocumentoResponseDTO;
 import com.example.tcc_alistamento.exceptions.RegraDeNegocioException;
-import com.example.tcc_alistamento.infra.security.ControleAcesso;
+import com.example.tcc_alistamento.security.ControleAcesso;
 import com.example.tcc_alistamento.model.Administrador;
 import com.example.tcc_alistamento.model.Alistamento;
 import com.example.tcc_alistamento.model.Usuario;

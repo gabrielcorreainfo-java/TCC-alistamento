@@ -1,8 +1,7 @@
 package com.example.tcc_alistamento.controller;
 
-import com.example.tcc_alistamento.dto.LocalRequestDTO;
-import com.example.tcc_alistamento.dto.LocalResponseDTO;
-import com.example.tcc_alistamento.dto.UsuarioResponseDTO;
+import com.example.tcc_alistamento.dto.request.LocalRequestDTO;
+import com.example.tcc_alistamento.dto.response.LocalResponseDTO;
 import com.example.tcc_alistamento.service.LocalService;
 import org.springframework.web.bind.annotation.*;
 

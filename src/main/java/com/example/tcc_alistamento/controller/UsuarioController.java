@@ -1,8 +1,8 @@
 package com.example.tcc_alistamento.controller;
 
-import com.example.tcc_alistamento.dto.AlistamentoResponseDTO;
-import com.example.tcc_alistamento.dto.UsuarioRequestDTO;
-import com.example.tcc_alistamento.dto.UsuarioResponseDTO;
+import com.example.tcc_alistamento.dto.response.AlistamentoResponseDTO;
+import com.example.tcc_alistamento.dto.request.UsuarioRequestDTO;
+import com.example.tcc_alistamento.dto.response.UsuarioResponseDTO;
 import com.example.tcc_alistamento.service.UsuarioService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;

@@ -1,10 +1,11 @@
 package com.example.tcc_alistamento.service;
 
-import com.example.tcc_alistamento.dto.RedefinirSenhaDTO;
+import com.example.tcc_alistamento.dto.request.RedefinirSenhaDTO;
 import com.example.tcc_alistamento.exceptions.RegraDeNegocioException;
 import com.example.tcc_alistamento.model.Usuario;
 import com.example.tcc_alistamento.repository.UsuarioRepository;
-import com.example.tcc_alistamento.security.Criptografia;
+import com.example.tcc_alistamento.security.criptografia.Criptografia;
+import com.example.tcc_alistamento.service.integracao.EmailService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

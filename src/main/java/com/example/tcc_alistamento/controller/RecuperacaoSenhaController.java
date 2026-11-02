@@ -1,7 +1,7 @@
 package com.example.tcc_alistamento.controller;
 
-import com.example.tcc_alistamento.dto.PedidoSenhaRequestDTO;
-import com.example.tcc_alistamento.dto.RedefinirSenhaDTO;
+import com.example.tcc_alistamento.dto.request.PedidoSenhaRequestDTO;
+import com.example.tcc_alistamento.dto.request.RedefinirSenhaDTO;
 import com.example.tcc_alistamento.service.RecuperacaoSenhaService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

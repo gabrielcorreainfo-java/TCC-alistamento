@@ -1,7 +1,7 @@
 package com.example.tcc_alistamento.model;
 
-import com.example.tcc_alistamento.security.Criptografia;
-import com.example.tcc_alistamento.security.DadoPessoalConverter;
+import com.example.tcc_alistamento.security.criptografia.Criptografia;
+import com.example.tcc_alistamento.security.criptografia.DadoPessoalConverter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;

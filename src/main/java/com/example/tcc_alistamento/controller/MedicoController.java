@@ -1,7 +1,7 @@
 package com.example.tcc_alistamento.controller;
 
-import com.example.tcc_alistamento.dto.MedicoRequestDTO;
-import com.example.tcc_alistamento.dto.MedicoResponseDTO;
+import com.example.tcc_alistamento.dto.request.MedicoRequestDTO;
+import com.example.tcc_alistamento.dto.response.MedicoResponseDTO;
 import com.example.tcc_alistamento.service.MedicoService;
 import org.springframework.web.bind.annotation.*;
 

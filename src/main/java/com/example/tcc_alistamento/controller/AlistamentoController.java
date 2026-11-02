@@ -1,8 +1,8 @@
 package com.example.tcc_alistamento.controller;
 
-import com.example.tcc_alistamento.dto.AlistamentoCompletoResponseDTO;
-import com.example.tcc_alistamento.dto.AlistamentoRequestDTO;
-import com.example.tcc_alistamento.dto.AlistamentoResponseDTO;
+import com.example.tcc_alistamento.dto.response.AlistamentoCompletoResponseDTO;
+import com.example.tcc_alistamento.dto.request.AlistamentoRequestDTO;
+import com.example.tcc_alistamento.dto.response.AlistamentoResponseDTO;
 import com.example.tcc_alistamento.service.AlistamentoService;
 import org.springframework.web.bind.annotation.*;
 

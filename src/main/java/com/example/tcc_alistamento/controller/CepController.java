@@ -1,7 +1,7 @@
 package com.example.tcc_alistamento.controller;
 
-import com.example.tcc_alistamento.dto.EnderecoResponseDTO;
-import com.example.tcc_alistamento.service.CepService;
+import com.example.tcc_alistamento.dto.response.EnderecoResponseDTO;
+import com.example.tcc_alistamento.service.integracao.CepService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;

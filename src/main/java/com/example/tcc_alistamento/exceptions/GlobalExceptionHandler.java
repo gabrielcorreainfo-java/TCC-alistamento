@@ -12,7 +12,6 @@ import org.springframework.security.core.AuthenticationException;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     /*
-     Trata a exceção UsuarioNotFoundException.
      Quando um usuário não é encontrado, este método é chamado
      automaticamente e transforma a exceção em uma resposta HTTP
      com status 404 (NOT_FOUND) e uma mensagem de erro.

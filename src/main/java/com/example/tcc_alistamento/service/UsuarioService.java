@@ -1,16 +1,18 @@
 package com.example.tcc_alistamento.service;
 
-import com.example.tcc_alistamento.dto.AlistamentoResponseDTO;
-import com.example.tcc_alistamento.dto.EnderecoResponseDTO;
-import com.example.tcc_alistamento.dto.UsuarioRequestDTO;
-import com.example.tcc_alistamento.dto.UsuarioResponseDTO;
+import com.example.tcc_alistamento.dto.response.AlistamentoResponseDTO;
+import com.example.tcc_alistamento.dto.response.EnderecoResponseDTO;
+import com.example.tcc_alistamento.dto.request.UsuarioRequestDTO;
+import com.example.tcc_alistamento.dto.response.UsuarioResponseDTO;
 import com.example.tcc_alistamento.exceptions.RegraDeNegocioException;
-import com.example.tcc_alistamento.infra.security.ControleAcesso;
+import com.example.tcc_alistamento.security.ControleAcesso;
 import com.example.tcc_alistamento.model.Usuario;
 import com.example.tcc_alistamento.repository.AdministradorRepository;
 import com.example.tcc_alistamento.repository.MedicoRepository;
 import com.example.tcc_alistamento.repository.UsuarioRepository;
-import com.example.tcc_alistamento.security.Criptografia;
+import com.example.tcc_alistamento.security.criptografia.Criptografia;
+import com.example.tcc_alistamento.service.integracao.CepService;
+import com.example.tcc_alistamento.service.integracao.VerificadorEmail;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,12 +24,11 @@ import java.util.List;
 public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
-    private final AdministradorRepository administradorRepository;
-    private final MedicoRepository medicoRepository;
     private final PasswordEncoder passwordEncoder;
     private final RegrasCadastro regrasCadastro;
     private final CepService cepService;
     private final ControleAcesso controleAcesso;
+    private final VerificadorEmail verificadorEmail;
 
     public UsuarioService(UsuarioRepository usuarioRepository,
                           AdministradorRepository administradorRepository,
@@ -35,14 +36,13 @@ public class UsuarioService {
                           PasswordEncoder passwordEncoder,
                           RegrasCadastro regrasCadastro,
                           CepService cepService,
-                          ControleAcesso controleAcesso) {
+                          ControleAcesso controleAcesso, VerificadorEmail verificadorEmail) {
         this.usuarioRepository = usuarioRepository;
-        this.administradorRepository = administradorRepository;
-        this.medicoRepository = medicoRepository;
         this.passwordEncoder = passwordEncoder;
         this.regrasCadastro = regrasCadastro;
         this.cepService = cepService;
         this.controleAcesso = controleAcesso;
+        this.verificadorEmail = verificadorEmail;
     }
 
     // ----- Cadastro (rota pública) -----
@@ -63,7 +63,7 @@ public class UsuarioService {
         regrasCadastro.validarUf(dto.uf());
 
         // 3. Duplicidades: e-mail único entre os 3 perfis e CPF único
-        validarEmailDisponivel(dto.email());
+        verificadorEmail.exigirDisponivel(dto.email());
         if (usuarioRepository.existsByCpfHash(Criptografia.hash(cpf))) {
             throw new RegraDeNegocioException(HttpStatus.CONFLICT, "Este CPF já está cadastrado.");
         }
@@ -128,7 +128,7 @@ public class UsuarioService {
             throw new RegraDeNegocioException(HttpStatus.CONFLICT, "Este CPF já está cadastrado.");
         }
         if (!usuarioExistente.getEmail().equalsIgnoreCase(dto.email())) {
-            validarEmailDisponivel(dto.email());
+            verificadorEmail.exigirDisponivel(dto.email());
         }
 
         copiarDados(dto, usuarioExistente);
@@ -164,7 +164,7 @@ public class UsuarioService {
             usuarioExistente.setTelefone(dto.telefone());
         }
         if (dto.email() != null && !dto.email().equalsIgnoreCase(usuarioExistente.getEmail())) {
-            validarEmailDisponivel(dto.email());
+            verificadorEmail.exigirDisponivel(dto.email());
             usuarioExistente.setEmail(dto.email());
         }
         if (dto.cpf() != null) {
@@ -249,18 +249,6 @@ public class UsuarioService {
             if (e.getStatus() == HttpStatus.NOT_FOUND) {
                 throw new RegraDeNegocioException(HttpStatus.BAD_REQUEST, "CEP não encontrado.");
             }
-            // ViaCEP indisponível: segue com o endereço informado
-        }
-    }
-
-    // O login é único para os 3 perfis, então o e-mail não pode se repetir entre eles
-    private void validarEmailDisponivel(String email) {
-        boolean emUso = usuarioRepository.findByEmail(email) != null
-                || administradorRepository.findByEmailAdmin(email) != null
-                || medicoRepository.findByEmailMedico(email) != null;
-
-        if (emUso) {
-            throw new RegraDeNegocioException(HttpStatus.CONFLICT, "Este e-mail já está cadastrado.");
         }
     }
 }

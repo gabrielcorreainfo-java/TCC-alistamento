@@ -1,10 +1,12 @@
 package com.example.tcc_alistamento.service;
 
-import com.example.tcc_alistamento.dto.AdministradorAlistamentosResponseDTO;
-import com.example.tcc_alistamento.dto.AdministradorRequestDTO;
-import com.example.tcc_alistamento.dto.AdministradorResponseDTO;
+import com.example.tcc_alistamento.dto.response.AdministradorAlistamentosResponseDTO;
+import com.example.tcc_alistamento.dto.request.AdministradorRequestDTO;
+import com.example.tcc_alistamento.dto.response.AdministradorResponseDTO;
+import com.example.tcc_alistamento.exceptions.RegraDeNegocioException;
 import com.example.tcc_alistamento.model.Administrador;
 import com.example.tcc_alistamento.repository.AdministradorRepository;
+import com.example.tcc_alistamento.service.integracao.VerificadorEmail;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -18,14 +20,16 @@ public class AdministradorService {
 
     private final AdministradorRepository administradorRepository;
     private final PasswordEncoder passwordEncoder;
+    private final VerificadorEmail verificadorEmail;
 
-    public AdministradorService(AdministradorRepository administradorRepository, PasswordEncoder passwordEncoder) {
+    public AdministradorService(AdministradorRepository administradorRepository, PasswordEncoder passwordEncoder, VerificadorEmail verificadorEmail) {
         this.administradorRepository = administradorRepository;
         this.passwordEncoder = passwordEncoder;
+        this.verificadorEmail = verificadorEmail;
     }
 
     public AdministradorResponseDTO salvar(AdministradorRequestDTO dto){
-
+        verificadorEmail.exigirDisponivel(dto.emailAdmin());
         Administrador administrador = new Administrador();
         administrador.setNomeAdmin(dto.nomeAdmin());
         administrador.setEmailAdmin(dto.emailAdmin());
@@ -35,9 +39,6 @@ public class AdministradorService {
 
         return new AdministradorResponseDTO(administrador);
     }
-
-    // login() removido — a autenticação agora passa pelo authenticationManager
-    // no AdministradorController, igual já é feito para Usuario.
 
     public List<AdministradorResponseDTO> listar(){
 
@@ -87,6 +88,10 @@ public class AdministradorService {
         Administrador administradorExistente = buscarEntidadePorId(id);
         administradorExistente.setNomeAdmin(dto.nomeAdmin());
         administradorExistente.setEmailAdmin(dto.emailAdmin());
+        // Só confere se o e-mail mudou
+        if (dto.emailAdmin() != null && !dto.emailAdmin().equalsIgnoreCase(administradorExistente.getEmailAdmin())) {
+            verificadorEmail.exigirDisponivel(dto.emailAdmin());
+        }
         // Só troca a senha se uma nova foi enviada
         if (dto.senhaAdmin() != null && !dto.senhaAdmin().isBlank()) {
             administradorExistente.setSenhaAdmin(passwordEncoder.encode(dto.senhaAdmin()));
@@ -104,7 +109,9 @@ public class AdministradorService {
             adminExistente.setNomeAdmin(dto.nomeAdmin());
         }
 
-        if (dto.emailAdmin() != null) {
+        // Só confere e troca se veio um e-mail diferente
+        if (dto.emailAdmin() != null && !dto.emailAdmin().equalsIgnoreCase(adminExistente.getEmailAdmin())) {
+            verificadorEmail.exigirDisponivel(dto.emailAdmin());
             adminExistente.setEmailAdmin(dto.emailAdmin());
         }
 
