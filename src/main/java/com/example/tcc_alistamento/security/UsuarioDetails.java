@@ -19,7 +19,7 @@ public class UsuarioDetails implements UsuarioAutenticado {
         this.usuario = usuario;
     }
 
-    //Retorna as permissões/roles que o usuário possui para Spring Security
+    //Retorna as permissões roles que o usuário possui para Spring Security
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
 
@@ -70,7 +70,7 @@ public class UsuarioDetails implements UsuarioAutenticado {
         return true;
     }
 
-    // ----- Dados de quem está logado (interface UsuarioAutenticado) -----
+    // Dados de quem está logado (interface UsuarioAutenticado)
 
     @Override
     public Integer getId() {

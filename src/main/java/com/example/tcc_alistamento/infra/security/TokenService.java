@@ -22,15 +22,17 @@ public class TokenService {
     @Value("${api.security.token.secret}")
     private String secret;
 
-    public String generateToken(UsuarioAutenticado usuario) {
+    public String generateToken(UsuarioAutenticado entidade) {
         try {
+            // pega o algoritmo para assinar com a chave
             Algorithm algorithm = Algorithm.HMAC256(secret);
+            // Pega o horário atual
             Instant agora = Instant.now();
 
             return JWT.create()
                     .withIssuer(EMISSOR)                       // quem criou o token
-                    .withSubject(usuario.getUsername())        // de quem é: o e-mail
-                    .withClaim("role", usuario.getPerfil())    // perfil (só informativo)
+                    .withSubject(entidade.getUsername())        // de quem é: o e-mail
+                    .withClaim("role", entidade.getPerfil())    // perfil (só informativo)
                     .withIssuedAt(agora)                       // quando foi criado
                     .withExpiresAt(agora.plus(HORAS_DE_VALIDADE, ChronoUnit.HOURS)) // vence em 2h
                     .sign(algorithm);                          // assinatura

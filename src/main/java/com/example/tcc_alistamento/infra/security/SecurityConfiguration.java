@@ -17,13 +17,12 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-/*
-Configuração central da segurança da API.
 
-Duas camadas de autorização:
-1. AQUI: o PERFIL (USER, MEDICO, ADMIN) pode usar esta rota?
-2. NOS SERVICES (ControleAcesso): o cidadão é DONO deste registro?
+/*
+  Classe responsáveç pela configuração central da segurança da API
+  EnableWebSecurity -> Usa a regra de segurança que eu escrevi nesta classe
  */
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfiguration {
@@ -39,14 +38,17 @@ public class SecurityConfiguration {
     }
 
     @Bean
+    // Metódo define os filtros de segurança da nossa API realizando validações
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+        // Objeto injetado para configramos as requisições HTTP
         return httpSecurity
-                // CSRF ataca sessões com cookies; a API usa token no cabeçalho
+                // Desativa a proteção contra CSRF
                 .csrf(csrf -> csrf.disable())
                 // Aplica o CorsConfig (qual front pode chamar a API)
                 .cors(Customizer.withDefaults())
-                // Sem sessão no servidor: a identidade vem do token em cada requisição
+                // Não armazena sessão no servidor: a identidade vem do token em cada requisição
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // Definimos todas as autenticações das rotas
                 .authorizeHttpRequests(authorize -> authorize
 
                         // ----- Públicas -----
@@ -103,28 +105,29 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.PATCH, "/administrador/*", "/medico/*", "/local/*", "/tipos-documento/*").hasAuthority(ADMIN)
                         .requestMatchers(HttpMethod.DELETE, "/administrador/*", "/medico/*", "/local/*", "/tipos-documento/*").hasAuthority(ADMIN)
 
-                        // ----- Resto: basta estar logado -----
-                        // Ex.: GET /usuario/{id}, GET /alistamento/{id}/completo, PATCH /alistamento/{id}.
-                        // Nesses casos o ControleAcesso confere se o cidadão é o dono
-                        // e o AlistamentoService confere qual status cada perfil pode definir.
+                        // Qualquer rota não citada só pode ser acessado por quem está logado
                         .anyRequest().authenticated()
                 )
-                // Sem token, ou com token inválido: 401. Perfil sem permissão: 403.
+                // Usuário sem token não consegue acessar uma rota protegida
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
                 // Nosso filtro lê o token antes dos filtros padrão do Spring
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
+                // Junta todas as regras e entrega toda a configuração
                 .build();
     }
 
-    // Componente que executa o login (usa o AuthenticationService e o BCrypt)
+    // Componente usado para conferir email e senha para autenticação (usa o AuthenticationService e o BCrypt)
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
+    // Bean -> Metódo de outra biblioteca (Spring Security)
     // BCrypt: hash irreversível das senhas
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
+
 }

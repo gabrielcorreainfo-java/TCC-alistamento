@@ -1,7 +1,5 @@
 package com.example.tcc_alistamento.service;
 
-// Lógica da autenticação do Usuário
-
 import com.example.tcc_alistamento.model.Administrador;
 import com.example.tcc_alistamento.model.Medico;
 import com.example.tcc_alistamento.model.Usuario;
@@ -17,11 +15,15 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+/*
+  - Classe responsável lógica da autenticação
+  - Implementa UserDetailsService para o Spring Security
+    identificar da classe ser um Service
+ */
 @Service
 public class AuthenticationService implements UserDetailsService {
 
     @Autowired
-    // UsuarioRepository para poder se comunicar com o BD
     UsuarioRepository usuarioRepository;
 
     @Autowired
@@ -48,6 +50,6 @@ public class AuthenticationService implements UserDetailsService {
             return new MedicoDetails(medico);
         }
 
-        throw new UsernameNotFoundException("Usuário não encontrado com esse e-mail");
+        throw new RegraDeNegocioException(HttpStatus.NOT_FOUND,"Usuário não encontrado com esse e-mail");
     }
 }

@@ -2,9 +2,10 @@ package com.example.tcc_alistamento.service;
 
 import com.example.tcc_alistamento.dto.MedicoRequestDTO;
 import com.example.tcc_alistamento.dto.MedicoResponseDTO;
-import com.example.tcc_alistamento.exceptions.MedicoNotFoundException;
+import com.example.tcc_alistamento.exceptions.RegraDeNegocioException;
 import com.example.tcc_alistamento.model.Medico;
 import com.example.tcc_alistamento.repository.MedicoRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -124,6 +125,6 @@ public class MedicoService {
 
         return medicoRepository.findById(id)
                 .orElseThrow(() ->
-                        new MedicoNotFoundException("Médico não encontrado"));
+                        new RegraDeNegocioException(HttpStatus.NOT_FOUND,"Médico não encontrado"));
     }
 }

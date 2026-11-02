@@ -4,9 +4,7 @@ import com.example.tcc_alistamento.dto.AlistamentoResponseDTO;
 import com.example.tcc_alistamento.dto.EnderecoResponseDTO;
 import com.example.tcc_alistamento.dto.UsuarioRequestDTO;
 import com.example.tcc_alistamento.dto.UsuarioResponseDTO;
-import com.example.tcc_alistamento.exceptions.AlistamentoNotFoundException;
 import com.example.tcc_alistamento.exceptions.RegraDeNegocioException;
-import com.example.tcc_alistamento.exceptions.UsuarioNotFoundException;
 import com.example.tcc_alistamento.infra.security.ControleAcesso;
 import com.example.tcc_alistamento.model.Usuario;
 import com.example.tcc_alistamento.repository.AdministradorRepository;
@@ -103,7 +101,7 @@ public class UsuarioService {
 
     public Usuario buscarUsuarioPorId(Integer id) {
         return usuarioRepository.findById(id)
-                .orElseThrow(() -> new UsuarioNotFoundException("Usuário não encontrado"));
+                .orElseThrow(() -> new RegraDeNegocioException(HttpStatus.NOT_FOUND,"Usuário não encontrado"));
     }
 
     public AlistamentoResponseDTO buscarAlistamentoDoUsuario(Integer idUsuario) {
@@ -111,7 +109,7 @@ public class UsuarioService {
 
         Usuario usuario = buscarUsuarioPorId(idUsuario);
         if (usuario.getAlistamento() == null) {
-            throw new AlistamentoNotFoundException("Usuário ainda não possui alistamento");
+            throw new RegraDeNegocioException(HttpStatus.NOT_FOUND,"Usuário ainda não possui alistamento");
         }
         return new AlistamentoResponseDTO(usuario.getAlistamento());
     }

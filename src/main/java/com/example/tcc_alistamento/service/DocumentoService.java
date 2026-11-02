@@ -3,11 +3,7 @@ package com.example.tcc_alistamento.service;
 import com.example.tcc_alistamento.dto.DocumentoRequestDTO;
 import com.example.tcc_alistamento.dto.DocumentoResponseDTO;
 import com.example.tcc_alistamento.dto.DocumentoStatusRequestDTO;
-import com.example.tcc_alistamento.exceptions.AlistamentoNotFoundException;
-import com.example.tcc_alistamento.exceptions.DocumentoNotFoundException;
 import com.example.tcc_alistamento.exceptions.RegraDeNegocioException;
-import com.example.tcc_alistamento.exceptions.TipoDeDocumentoNotFoundException;
-import com.example.tcc_alistamento.exceptions.UsuarioNotFoundException;
 import com.example.tcc_alistamento.infra.security.ControleAcesso;
 import com.example.tcc_alistamento.model.Alistamento;
 import com.example.tcc_alistamento.model.Documento;
@@ -228,14 +224,14 @@ public class DocumentoService {
     o formato varia muito, então conferimos só o essencial.
      */
     private void validarDadosDoDocumento(DocumentoRequestDTO dto, TipoDocumento tipo) {
-        if (vazio(dto.numeroDocumento()) || vazio(dto.orgaoEmissor())
-                || vazio(dto.cidadeEmissao()) || vazio(dto.estadoEmissao())) {
-            throw new RegraDeNegocioException(HttpStatus.BAD_REQUEST,
-                    "Preencha número, órgão emissor, cidade e estado de emissão.");
+        if (vazio(dto.numeroDocumento()) || vazio(dto.orgaoEmissor()) || vazio(dto.cidadeEmissao()) || vazio(dto.estadoEmissao())) {
+            throw new RegraDeNegocioException(HttpStatus.BAD_REQUEST, "Preencha número, órgão emissor, cidade e estado de emissão.");
         }
         if (dto.dataEmissao() == null || dto.dataEmissao().isAfter(LocalDate.now())) {
             throw new RegraDeNegocioException(HttpStatus.BAD_REQUEST, "Data de emissão inválida.");
         }
+
+        // Se o tipo for RG, confere o formato do número
         if (tipo.getNomeTipo() != null && tipo.getNomeTipo().trim().equalsIgnoreCase("RG")) {
             regrasCadastro.validarRg(dto.numeroDocumento());
         }
@@ -247,21 +243,21 @@ public class DocumentoService {
 
     private Documento buscarDocumento(Integer id) {
         return documentoRepository.findById(id)
-                .orElseThrow(() -> new DocumentoNotFoundException("Documento não encontrado"));
+                .orElseThrow(() -> new RegraDeNegocioException(HttpStatus.NOT_FOUND,"Documento não encontrado"));
     }
 
     private Usuario buscarUsuario(Integer id) {
         return usuarioRepository.findById(id)
-                .orElseThrow(() -> new UsuarioNotFoundException("Usuário não encontrado"));
+                .orElseThrow(() -> new RegraDeNegocioException(HttpStatus.NOT_FOUND,"Usuário não encontrado"));
     }
 
     private Alistamento buscarAlistamento(Integer id) {
         return alistamentoRepository.findById(id)
-                .orElseThrow(() -> new AlistamentoNotFoundException("Alistamento não encontrado"));
+                .orElseThrow(() -> new RegraDeNegocioException(HttpStatus.NOT_FOUND,"Alistamento não encontrado"));
     }
 
     private TipoDocumento buscarTipoDocumento(Integer id) {
         return tipoDocumentoRepository.findById(id)
-                .orElseThrow(() -> new TipoDeDocumentoNotFoundException("Tipo de documento não encontrado"));
+                .orElseThrow(() -> new RegraDeNegocioException(HttpStatus.NOT_FOUND,"Tipo de documento não encontrado"));
     }
 }

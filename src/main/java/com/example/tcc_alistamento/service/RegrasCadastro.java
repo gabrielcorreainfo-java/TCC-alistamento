@@ -2,6 +2,7 @@ package com.example.tcc_alistamento.service;
 
 import com.example.tcc_alistamento.exceptions.RegraDeNegocioException;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.Year;
@@ -44,11 +45,12 @@ public class RegrasCadastro {
         validarSexo(sexo);
         validarNacionalidade(nacionalidade);
 
+        // Data de nascimento nula ou futura é inválida
         if (dataNascimento == null || dataNascimento.isAfter(LocalDate.now())) {
             throw erro("Data de nascimento inválida.");
         }
 
-        // A lei considera o ANO em que a pessoa completa a idade, não o dia do aniversário
+        // Calcula a idade pelo ano atual
         int idadeNoAno = Year.now().getValue() - dataNascimento.getYear();
 
         if (idadeNoAno < IDADE_ALISTAMENTO) {
@@ -78,10 +80,12 @@ public class RegrasCadastro {
     public String normalizarCpf(String cpf) {
         String numeros = cpf == null ? "" : cpf.replaceAll("\\D", "");
 
+        // Se não tem 11 numeros, ou se todos os números são iguais erro
         if (numeros.length() != 11 || numeros.chars().distinct().count() == 1) {
             throw erro("CPF inválido.");
         }
 
+        // Confere os dois ultimos números do CPF calculado apartir dos 9 primeiros
         for (int posicao = 9; posicao <= 10; posicao++) {
             int soma = 0;
             for (int i = 0; i < posicao; i++) {
@@ -104,14 +108,18 @@ public class RegrasCadastro {
     e o último dígito pode ser X (mesma regra do front, na função rgValido).
      */
     public String validarRg(String rg) {
+        // Se RG veio nulo usa "" senão trim() tira os espaçps
         String texto = rg == null ? "" : rg.trim();
 
+        // Confere os caracteres se só tem permitidos
         if (!texto.matches("[0-9xX.\\-/ ]+")) {
             throw erro("RG inválido: use apenas números, pontos, traço e o dígito X.");
         }
 
+        // Oque não é numero nem X, apaga isso e deixa o X maiúsculo
         String normalizado = texto.replaceAll("[^0-9xX]", "").toUpperCase();
 
+        // X só pode estra no final
         if (!normalizado.matches("[0-9]{5,13}[0-9X]")) {
             throw erro("RG inválido.");
         }
@@ -120,19 +128,23 @@ public class RegrasCadastro {
 
     // Devolve o CEP no formato 00000-000
     public String normalizarCep(String cep) {
+        // Se veio nulo deixa "" senão apaga tudo que não é número
         String numeros = cep == null ? "" : cep.replaceAll("\\D", "");
         if (numeros.length() != 8) {
             throw erro("CEP inválido. Use o formato 00000-000.");
         }
+        // Pega do 6º até o fim e devolve formatado 06010-000
         return numeros.substring(0, 5) + "-" + numeros.substring(5);
     }
 
     public void validarUf(String uf) {
+        // Só confere se veio preenchido, se não for 2 letras maiúsculas UF inválida
         if (uf != null && !uf.isBlank() && !uf.matches("[A-Z]{2}")) {
             throw erro("UF inválida.");
         }
     }
 
+    // Metódo de atalho para todas as validações
     private RegraDeNegocioException erro(String mensagem) {
         return new RegraDeNegocioException(HttpStatus.BAD_REQUEST, mensagem);
     }

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
 
+    // Retorna usuario que vai ser consultado na BD
     Usuario findByEmail(String email);
 
     // O CPF fica criptografado no banco, então a busca é feita pela "impressão digital" (hash)

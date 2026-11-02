@@ -4,6 +4,7 @@ import com.example.tcc_alistamento.dto.LoginRequestDTO;
 import com.example.tcc_alistamento.dto.LoginResponseDTO;
 import com.example.tcc_alistamento.infra.security.TokenService;
 import com.example.tcc_alistamento.security.UsuarioAutenticado;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /*
 Login único para cidadão, médico e administrador.
-Confere e-mail e senha (BCrypt) e devolve o token JWT com o perfil, o id e o nome.
+Confere e-mail e senha e devolve o token JWT.
  */
 @RestController
 @RequestMapping("/auth")
@@ -29,23 +30,24 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginRequestDTO dto) {
+    public ResponseEntity<LoginResponseDTO> login(@RequestBody @Valid LoginRequestDTO dto) {
 
-        // 1. Confere e-mail e senha (BCrypt). Se estiver errado, o GlobalExceptionHandler responde 401.
+        //Confere e-mail e senha. Se estiver errado, o GlobalExceptionHandler responde 401.
         var usernamePassword = new UsernamePasswordAuthenticationToken(dto.email(), dto.senha());
+        //  Autentica a entidade  passando o usernamePassword verificando quem é essa pessoa
         var auth = authenticationManager.authenticate(usernamePassword);
 
-        // 2. Quem entrou: UsuarioDetails, MedicoDetails ou AdministradorDetails
-        UsuarioAutenticado usuario = (UsuarioAutenticado) auth.getPrincipal();
+        //  Pega quem fez login para ler o id, o nome e o perfil
+        UsuarioAutenticado entidadesLogando = (UsuarioAutenticado) auth.getPrincipal();
 
-        // 3. Gera o token e devolve junto com perfil, id e nome
-        String token = tokenService.generateToken(usuario);
+        // Gera o token e devolve junto com perfil, id e nome
+        String token = tokenService.generateToken(entidadesLogando);
 
         return ResponseEntity.ok(new LoginResponseDTO(
                 token,
-                usuario.getPerfil(),
-                usuario.getId(),
-                usuario.getNome()
+                entidadesLogando.getPerfil(),
+                entidadesLogando.getId(),
+                entidadesLogando.getNome()
         ));
     }
 }

@@ -25,45 +25,36 @@ public class AdministradorDetails implements UsuarioAutenticado {
 
     @Override
     public String getPassword() {
-        // Retorna a senha do administrador (o hash BCrypt guardado no banco).
         return administrador.getSenhaAdmin();
     }
 
     @Override
     public String getUsername() {
-        // Retorna o email usado para fazer login.
         return administrador.getEmailAdmin();
     }
 
     @Override
     public boolean isAccountNonExpired() {
-        // Informa se a conta não expirou.
         return true;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        // Informa se a conta não está bloqueada.
         return true;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        // Informa se as credenciais não expiraram.
         return true;
     }
 
     @Override
     public boolean isEnabled() {
-        // Informa se o administrador está ativo.
         return true;
     }
 
-    // ----- Dados de quem está logado (interface UsuarioAutenticado) -----
-
     @Override
     public Integer getId() {
-        // id_admin: usado para registrar QUAL administrador analisou o alistamento
         return administrador.getId();
     }
 

@@ -12,8 +12,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /*
-Recuperação de senha (versão com atendimento pelo administrador):
-
 1. O cidadão informa o e-mail na tela "Esqueci minha senha".
 2. A API registra um pedido, SEM dizer se o e-mail existe ou não.
    (Se dissesse, alguém poderia descobrir quem tem cadastro - LGPD.)
@@ -32,24 +30,30 @@ public class RecuperacaoSenhaService {
         this.usuarioRepository = usuarioRepository;
     }
 
+    // O cidadão pede uma senha nova
     public void solicitar(String email) {
 
+        // Email vazio
         if (email == null || email.isBlank()) {
             throw new RegraDeNegocioException(HttpStatus.BAD_REQUEST, "Informe o e-mail.");
         }
 
+        // Tira os espaços sobrando
         String emailNormalizado = email.trim();
 
         // Só registra se o e-mail for de um cidadão e não houver pedido pendente.
         // Em qualquer caso, a resposta para o front é a mesma.
         boolean existe = usuarioRepository.findByEmail(emailNormalizado) != null;
-        boolean jaPendente = pedidoSenhaRepository
-                .existsByEmailIgnoreCaseAndStatus(emailNormalizado, PedidoSenha.PENDENTE);
+        boolean jaPendente = pedidoSenhaRepository.existsByEmailIgnoreCaseAndStatus(emailNormalizado, PedidoSenha.PENDENTE);
 
+        // Só grava se o e-mail existe E não tem outro pedido esperando
         if (existe && !jaPendente) {
+            // Cria o pedido
             PedidoSenha pedido = new PedidoSenha();
             pedido.setEmail(emailNormalizado);
+            // Data do pedido = agora
             pedido.setDataPedido(LocalDateTime.now());
+            // Salva (o status já começa "Pendente")
             pedidoSenhaRepository.save(pedido);
         }
     }
