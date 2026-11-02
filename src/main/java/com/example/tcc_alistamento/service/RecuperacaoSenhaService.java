@@ -1,33 +1,46 @@
 package com.example.tcc_alistamento.service;
 
-import com.example.tcc_alistamento.dto.PedidoSenhaResponseDTO;
+import com.example.tcc_alistamento.dto.RedefinirSenhaDTO;
 import com.example.tcc_alistamento.exceptions.RegraDeNegocioException;
-import com.example.tcc_alistamento.model.PedidoSenha;
-import com.example.tcc_alistamento.repository.PedidoSenhaRepository;
+import com.example.tcc_alistamento.model.Usuario;
 import com.example.tcc_alistamento.repository.UsuarioRepository;
+import com.example.tcc_alistamento.security.Criptografia;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
-import java.util.List;
+
 
 /*
-1. O cidadão informa o e-mail na tela "Esqueci minha senha".
-2. A API registra um pedido, SEM dizer se o e-mail existe ou não.
-   (Se dissesse, alguém poderia descobrir quem tem cadastro - LGPD.)
-3. O administrador vê os pedidos, redefine a senha (gravada com BCrypt)
-   e entra em contato com o cidadão.
+Recuperação de senha por código enviado por e-mail:
+1. O cidadão informa o e-mail e recebe um código de 6 dígitos.
+2. Ele informa o código e a senha nova.
+Só o hash do código fica no banco; ele vence em 10 minutos, é de uso único
+e aceita no máximo 5 erros. A resposta do pedido é sempre a mesma.
  */
+
 @Service
 public class RecuperacaoSenhaService {
 
-    private final PedidoSenhaRepository pedidoSenhaRepository;
-    private final UsuarioRepository usuarioRepository;
+    // O código vale por 10 minutos
+    private static final int MINUTOS_VALIDADE = 10;
+    // Máximo de erros antes de cancelar o código
+    private static final int MAX_TENTATIVAS = 5;
+    // Gerador de números aleatórios seguro
+    private static final SecureRandom ALEATORIO = new SecureRandom();
 
-    public RecuperacaoSenhaService(PedidoSenhaRepository pedidoSenhaRepository,
-                                   UsuarioRepository usuarioRepository) {
-        this.pedidoSenhaRepository = pedidoSenhaRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final EmailService emailService;
+    private final PasswordEncoder passwordEncoder;
+
+    public RecuperacaoSenhaService(UsuarioRepository usuarioRepository,
+                                   EmailService emailService,
+                                   PasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
+        this.emailService = emailService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     // O cidadão pede uma senha nova
@@ -38,39 +51,78 @@ public class RecuperacaoSenhaService {
             throw new RegraDeNegocioException(HttpStatus.BAD_REQUEST, "Informe o e-mail.");
         }
 
-        // Tira os espaços sobrando
-        String emailNormalizado = email.trim();
+        // Procura o cidadão e tira os espaços
+        Usuario usuario = usuarioRepository.findByEmail(email.trim());
 
-        // Só registra se o e-mail for de um cidadão e não houver pedido pendente.
-        // Em qualquer caso, a resposta para o front é a mesma.
-        boolean existe = usuarioRepository.findByEmail(emailNormalizado) != null;
-        boolean jaPendente = pedidoSenhaRepository.existsByEmailIgnoreCaseAndStatus(emailNormalizado, PedidoSenha.PENDENTE);
-
-        // Só grava se o e-mail existe E não tem outro pedido esperando
-        if (existe && !jaPendente) {
-            // Cria o pedido
-            PedidoSenha pedido = new PedidoSenha();
-            pedido.setEmail(emailNormalizado);
-            // Data do pedido = agora
-            pedido.setDataPedido(LocalDateTime.now());
-            // Salva (o status já começa "Pendente")
-            pedidoSenhaRepository.save(pedido);
+        // E-mail não cadastrado: não faz nada, mas a resposta é a mesma
+        if (usuario == null) {
+            return;
         }
+
+        // Sorteia um código de 6 dígitos (ex.: 048213)
+        String codigo = String.format("%06d", ALEATORIO.nextInt(1_000_000));
+
+        // Guarda só o hash, a validade e zera as tentativas (substitui um código antigo)
+        usuario.setCodigoSenhaHash(Criptografia.hash(codigo));
+        usuario.setCodigoSenhaExpira(LocalDateTime.now().plusMinutes(MINUTOS_VALIDADE));
+        usuario.setCodigoSenhaTentativas(0);
+        usuarioRepository.save(usuario);
+
+        // Envia o código por e-mail
+        emailService.enviarCodigoSenha(usuario.getEmail(), codigo, MINUTOS_VALIDADE);
+
+        }
+
+    // O cidadão informa o código e a senha nova
+    public void redefinir(RedefinirSenhaDTO dto) {
+
+        // Campos vazios: 400
+        if (dto.email() == null || dto.codigo() == null || dto.novaSenha() == null) {
+            throw new RegraDeNegocioException(HttpStatus.BAD_REQUEST,
+                    "Preencha o e-mail, o código e a nova senha.");
+        }
+
+        // Procura o cidadão
+        Usuario usuario = usuarioRepository.findByEmail(dto.email().trim());
+
+        // Sem cidadão, sem código ou código vencido: 400
+        if (usuario == null
+                || usuario.getCodigoSenhaHash() == null
+                || usuario.getCodigoSenhaExpira().isBefore(LocalDateTime.now())) {
+            throw new RegraDeNegocioException(HttpStatus.BAD_REQUEST, "Código inválido ou expirado.");
+        }
+
+        // Errou demais: cancela o código
+        if (usuario.getCodigoSenhaTentativas() >= MAX_TENTATIVAS) {
+            limparCodigo(usuario);
+            usuarioRepository.save(usuario);
+            throw new RegraDeNegocioException(HttpStatus.BAD_REQUEST,
+                    "Muitas tentativas. Peça um novo código.");
+        }
+
+        // Código errado: soma uma tentativa
+        if (!Criptografia.hash(dto.codigo().trim()).equals(usuario.getCodigoSenhaHash())) {
+            usuario.setCodigoSenhaTentativas(usuario.getCodigoSenhaTentativas() + 1);
+            usuarioRepository.save(usuario);
+            throw new RegraDeNegocioException(HttpStatus.BAD_REQUEST, "Código inválido.");
+        }
+
+        // Senha nova curta: 400
+        if (dto.novaSenha().length() < 6) {
+            throw new RegraDeNegocioException(HttpStatus.BAD_REQUEST,
+                    "A senha deve ter pelo menos 6 caracteres.");
+        }
+
+        // Tudo certo: grava a senha nova com BCrypt e apaga o código (uso único)
+        usuario.setSenha(passwordEncoder.encode(dto.novaSenha()));
+        limparCodigo(usuario);
+        usuarioRepository.save(usuario);
     }
 
-    public List<PedidoSenhaResponseDTO> listarPendentes() {
-        return pedidoSenhaRepository.findByStatusOrderByDataPedidoAsc(PedidoSenha.PENDENTE)
-                .stream()
-                .map(PedidoSenhaResponseDTO::new)
-                .toList();
-    }
-
-    public void concluir(Integer id) {
-        PedidoSenha pedido = pedidoSenhaRepository.findById(id)
-                .orElseThrow(() -> new RegraDeNegocioException(HttpStatus.NOT_FOUND, "Pedido não encontrado."));
-
-        pedido.setStatus(PedidoSenha.ATENDIDO);
-        pedido.setDataAtendimento(LocalDateTime.now());
-        pedidoSenhaRepository.save(pedido);
+    // Apaga o código do cadastro
+    private void limparCodigo(Usuario usuario) {
+        usuario.setCodigoSenhaHash(null);
+        usuario.setCodigoSenhaExpira(null);
+        usuario.setCodigoSenhaTentativas(0);
     }
 }

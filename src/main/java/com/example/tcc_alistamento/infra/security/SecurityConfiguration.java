@@ -57,6 +57,7 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/usuario").permitAll()
                         .requestMatchers(HttpMethod.POST, "/recuperacao-senha").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/recuperacao-senha/redefinir").permitAll()
                         .requestMatchers(HttpMethod.GET, "/cep/*").permitAll()
 
                         // ----- Cidadão -----
@@ -77,8 +78,6 @@ public class SecurityConfiguration {
                                 "/agendamentos", "/avaliacoes-medicas").hasAnyAuthority(ADMIN, MEDICO)
 
                         // ----- Administrador -----
-                        .requestMatchers(HttpMethod.GET, "/recuperacao-senha").hasAuthority(ADMIN)
-                        .requestMatchers(HttpMethod.PATCH, "/recuperacao-senha/*/concluir").hasAuthority(ADMIN)
 
                         .requestMatchers(HttpMethod.PUT, "/usuario/*").hasAuthority(ADMIN)
                         .requestMatchers(HttpMethod.PATCH, "/usuario/*").hasAuthority(ADMIN)

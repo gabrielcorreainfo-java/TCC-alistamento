@@ -6,8 +6,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.stereotype.Service;
 
 // Envia o e-mail para a pessoa
+
+@Service
 public class EmailService {
     // O "carteiro" do Spring, cria ele com as configurações do application.properties
     private final JavaMailSender mailSender;
@@ -31,7 +34,6 @@ public class EmailService {
                 "Seu código para redefinir a senha é: " + codigo + "\n\n"
                         + "Ele vale por " + minutos + " minutos e só pode ser usado uma vez.\n"
                         + "Se você não pediu a troca de senha, ignore este e-mail.");
-
         try {
             // Envia
             mailSender.send(mensagem);
