@@ -2,10 +2,6 @@ package com.example.tcc_alistamento.service;
 
 import com.example.tcc_alistamento.dto.AgendamentoRequestDTO;
 import com.example.tcc_alistamento.dto.AgendamentoResponseDTO;
-import com.example.tcc_alistamento.exceptions.AgendamentoNotFoundException;
-import com.example.tcc_alistamento.exceptions.AlistamentoNotFoundException;
-import com.example.tcc_alistamento.exceptions.LocalNotFoundException;
-import com.example.tcc_alistamento.exceptions.MedicoNotFoundException;
 import com.example.tcc_alistamento.infra.security.ControleAcesso;
 import com.example.tcc_alistamento.model.Agendamento;
 import com.example.tcc_alistamento.model.Alistamento;
@@ -130,21 +126,21 @@ public class AgendamentoService {
 
     private Agendamento buscarAgendamentoPorId(Integer id) {
         return agendamentoRepository.findById(id)
-                .orElseThrow(() -> new AgendamentoNotFoundException("Agendamento não encontrado"));
+                .orElseThrow(() -> new RegraDeNegocioException(HttpStatus.NOT_FOUND,"Agendamento não encontrado"));
     }
 
     private Alistamento buscarAlistamentoPorId(Integer id) {
         return alistamentoRepository.findById(id)
-                .orElseThrow(() -> new AlistamentoNotFoundException("Alistamento não encontrado"));
+                .orElseThrow(() -> new RegraDeNegocioException(HttpStatus.NOT_FOUND,"Alistamento não encontrado"));
     }
 
     private Local buscarLocalPorId(Integer id) {
         return localRepository.findById(id)
-                .orElseThrow(() -> new LocalNotFoundException("Local não encontrado"));
+                .orElseThrow(() -> new RegraDeNegocioException(HttpStatus.NOT_FOUND,"Local não encontrado"));
     }
 
     private Medico buscarMedicoPorId(Integer id) {
         return medicoRepository.findById(id)
-                .orElseThrow(() -> new MedicoNotFoundException("Médico não encontrado"));
+                .orElseThrow(() -> new RegraDeNegocioException(HttpStatus.NOT_FOUND,"Médico não encontrado"));
     }
 }

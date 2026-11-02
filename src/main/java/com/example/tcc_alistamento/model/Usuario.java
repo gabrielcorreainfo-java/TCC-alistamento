@@ -123,6 +123,21 @@ public class Usuario {
     @OneToOne(mappedBy = "usuario")
     private Alistamento alistamento;
 
+    // Recuperação de senha: hash do código enviado por e-mail (nunca o código em si)
+    @JsonIgnore
+    @Column(name = "codigo_senha_hash", length = 64)
+    private String codigoSenhaHash;
+
+    // Recuperação de senha: quando o código vence
+    @JsonIgnore
+    @Column(name = "codigo_senha_expira")
+    private LocalDateTime codigoSenhaExpira;
+
+    // Recuperação de senha: quantas vezes erraram o código
+    @JsonIgnore
+    @Column(name = "codigo_senha_tentativas", nullable = false)
+    private Integer codigoSenhaTentativas = 0;
+
     // Antes de inserir ou atualizar, recalcula a impressão digital do CPF
     @PrePersist
     @PreUpdate

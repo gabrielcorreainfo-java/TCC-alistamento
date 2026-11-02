@@ -4,13 +4,10 @@ import com.example.tcc_alistamento.dto.AdministradorAlistamentosResponseDTO;
 import com.example.tcc_alistamento.dto.AdministradorRequestDTO;
 import com.example.tcc_alistamento.dto.AdministradorResponseDTO;
 import com.example.tcc_alistamento.model.Administrador;
-import com.example.tcc_alistamento.exceptions.AdministradorNotFoundException;
 import com.example.tcc_alistamento.repository.AdministradorRepository;
-import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 
 import java.util.List;
@@ -62,7 +59,7 @@ public class AdministradorService {
 
         return administradorRepository.findById(id)
                 .orElseThrow(() ->
-                        new AdministradorNotFoundException(
+                        new RegraDeNegocioException(HttpStatus.NOT_FOUND,
                                 "Administrador não encontrado"
                         )
                 );

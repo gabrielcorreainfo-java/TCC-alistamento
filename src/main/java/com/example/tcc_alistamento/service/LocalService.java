@@ -2,7 +2,6 @@ package com.example.tcc_alistamento.service;
 
 import com.example.tcc_alistamento.dto.LocalRequestDTO;
 import com.example.tcc_alistamento.dto.LocalResponseDTO;
-import com.example.tcc_alistamento.exceptions.LocalNotFoundException;
 import com.example.tcc_alistamento.model.Local;
 import com.example.tcc_alistamento.repository.LocalRepository;
 import org.springframework.beans.BeanUtils;
@@ -44,7 +43,7 @@ public class LocalService {
 
     }
     public Local buscarLocalPorId(Integer id){
-        return localRepository.findById(id).orElseThrow(()->new LocalNotFoundException("Local não encontrado"));
+        return localRepository.findById(id).orElseThrow(()->new RegraDeNegocioException(HttpStatus.NOT_FOUND,"Local não encontrado"));
     }
 
     public LocalResponseDTO atualizarLocal(Integer id, LocalRequestDTO dto){

@@ -2,10 +2,6 @@ package com.example.tcc_alistamento.service;
 
 import com.example.tcc_alistamento.dto.AvaliacaoMedicaRequestDTO;
 import com.example.tcc_alistamento.dto.AvaliacaoMedicaResponseDTO;
-import com.example.tcc_alistamento.exceptions.AlistamentoNotFoundException;
-import com.example.tcc_alistamento.exceptions.AvaliacaoMedicaNotFoundException;
-import com.example.tcc_alistamento.exceptions.LocalNotFoundException;
-import com.example.tcc_alistamento.exceptions.MedicoNotFoundException;
 import com.example.tcc_alistamento.exceptions.RegraDeNegocioException;
 import com.example.tcc_alistamento.infra.security.ControleAcesso;
 import com.example.tcc_alistamento.model.Alistamento;
@@ -141,21 +137,21 @@ public class AvaliacaoMedicaService {
 
     private AvaliacaoMedica buscarAvaliacao(Integer id) {
         return avaliacaoMedicaRepository.findById(id)
-                .orElseThrow(() -> new AvaliacaoMedicaNotFoundException("Avaliação médica não encontrada"));
+                .orElseThrow(() -> new RegraDeNegocioException(HttpStatus.NOT_FOUND,"Avaliação médica não encontrada"));
     }
 
     private Alistamento buscarAlistamento(Integer id) {
         return alistamentoRepository.findById(id)
-                .orElseThrow(() -> new AlistamentoNotFoundException("Alistamento não encontrado"));
+                .orElseThrow(() -> new RegraDeNegocioException(HttpStatus.NOT_FOUND,"Alistamento não encontrado"));
     }
 
     private Local buscarLocal(Integer id) {
         return localRepository.findById(id)
-                .orElseThrow(() -> new LocalNotFoundException("Local não encontrado"));
+                .orElseThrow(() -> new RegraDeNegocioException(HttpStatus.NOT_FOUND,"Local não encontrado"));
     }
 
     private Medico buscarMedico(Integer id) {
         return medicoRepository.findById(id)
-                .orElseThrow(() -> new MedicoNotFoundException("Médico não encontrado"));
+                .orElseThrow(() -> new RegraDeNegocioException(HttpStatus.NOT_FOUND,"Médico não encontrado"));
     }
 }

@@ -16,11 +16,12 @@ e marca o pedido como atendido.
 @Setter
 @NoArgsConstructor
 @Entity
-// "Pedidosenha" (sem a segunda maiúscula), pelo mesmo motivo de "Avaliacaomedica":
-// o Spring transformaria "PedidoSenha" em "pedido_senha"
+
+// O nome da tabela ("Pedidosenha", senão o Spring procuraria "pedido_senha")
 @Table(name = "Pedidosenha")
 public class PedidoSenha {
 
+    // Os dois status possíveis do pedido
     public static final String PENDENTE = "Pendente";
     public static final String ATENDIDO = "Atendido";
 

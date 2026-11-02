@@ -19,68 +19,15 @@ public class GlobalExceptionHandler {
      Devolvendo um objeto da classe ErrorResponse
      Response Entity - controla a resposta HHTP que API vai devolver
      */
-    @ExceptionHandler(UsuarioNotFoundException.class)
-    public ResponseEntity<ErrorResponse> tratarUsuarioNaoEncontrado(UsuarioNotFoundException ex) {
-        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-    }
 
-    @ExceptionHandler(AdministradorNotFoundException.class)
-    public ResponseEntity<ErrorResponse> tratarAdministradorNaoEncontrado(AdministradorNotFoundException ex) {
-        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-    }
-
-    @ExceptionHandler(AlistamentoNotFoundException.class)
-    public ResponseEntity<ErrorResponse> tratarAlistamentoNaoEncontrado(AlistamentoNotFoundException ex) {
-        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-    }
-
-    @ExceptionHandler(LocalNotFoundException.class)
-    public ResponseEntity<ErrorResponse> tratarLocalNaoEncontrado(LocalNotFoundException ex) {
-        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-    }
-
-    @ExceptionHandler(TipoDeDocumentoNotFoundException.class)
-    public ResponseEntity<ErrorResponse> tratarTipoDocumentoNaoEncontrado(TipoDeDocumentoNotFoundException ex) {
-        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-    }
-
-    @ExceptionHandler(DocumentoNotFoundException.class)
-    public ResponseEntity<ErrorResponse> tratarDocumentoNaoEncontrado(DocumentoNotFoundException ex) {
-        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-    }
-
-    @ExceptionHandler(MedicoNotFoundException.class)
-    public ResponseEntity<ErrorResponse> tratarMedicoNaoEncontrado(MedicoNotFoundException ex) {
-        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-    }
-
-    @ExceptionHandler(AvaliacaoMedicaNotFoundException.class)
-    public ResponseEntity<ErrorResponse> tratarAvaliacaoMedicaNaoEncontrada(AvaliacaoMedicaNotFoundException ex) {
-        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-    }
-
-    @ExceptionHandler(AgendamentoNotFoundException.class)
-    public ResponseEntity<ErrorResponse> tratarAgendamentoNaoEncontrado(AgendamentoNotFoundException ex) {
-        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-    }
-
-    // Regras de negócio e de acesso (idade, CPF repetido, dado de outro cidadão...)
+    // Regra de negócio quebrada (CPF repetido, idade, sem permissão, não encontrado): usa o código e a mensagem do erro
     @ExceptionHandler(RegraDeNegocioException.class)
     public ResponseEntity<ErrorResponse> tratarRegraDeNegocio(RegraDeNegocioException ex) {
         ErrorResponse errorResponse = new ErrorResponse(ex.getStatus(), ex.getMessage());
         return ResponseEntity.status(ex.getStatus()).body(errorResponse);
     }
 
-    // Validações dos DTOs (@NotBlank, @Email...): devolve a mensagem do primeiro campo inválido
+    // Campo inválido no @Valid (vazio, e-mail errado): 400 com a mensagem do primeiro campo
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> tratarValidacao(MethodArgumentNotValidException ex) {
         String mensagem = ex.getBindingResult().getFieldErrors().stream()
@@ -91,7 +38,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(errorResponse);
     }
 
-    // Erros do banco: valor repetido em coluna UNIQUE ou registro com vínculos
+    // Banco recusou (valor repetido ou registro com vínculo): 409 sem mostrar o erro do MySQL
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponse> tratarIntegridadeDoBanco(DataIntegrityViolationException ex) {
         String causa = ex.getMostSpecificCause().getMessage();
@@ -107,14 +54,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
     }
 
-    // Login com e-mail ou senha errados (mensagem genérica de propósito)
+    // E-mail ou senha errados: 401 com mensagem genérica (não revela se o e-mail existe)
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorResponse> tratarFalhaDeLogin(AuthenticationException ex) {
         ErrorResponse errorResponse = new ErrorResponse(HttpStatus.UNAUTHORIZED, "E-mail ou senha inválidos.");
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
     }
 
-    // Arquivo de documento maior que o limite configurado
+    // Arquivo maior que 5 MB: 400
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<ErrorResponse> tratarArquivoGrande(MaxUploadSizeExceededException ex) {
         ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST, "O arquivo deve ter no máximo 5 MB.");

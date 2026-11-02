@@ -4,10 +4,7 @@ import com.example.tcc_alistamento.dto.AlistamentoCompletoResponseDTO;
 import com.example.tcc_alistamento.dto.AlistamentoRequestDTO;
 import com.example.tcc_alistamento.dto.AlistamentoResponseDTO;
 import com.example.tcc_alistamento.dto.DocumentoResponseDTO;
-import com.example.tcc_alistamento.exceptions.AdministradorNotFoundException;
-import com.example.tcc_alistamento.exceptions.AlistamentoNotFoundException;
 import com.example.tcc_alistamento.exceptions.RegraDeNegocioException;
-import com.example.tcc_alistamento.exceptions.UsuarioNotFoundException;
 import com.example.tcc_alistamento.infra.security.ControleAcesso;
 import com.example.tcc_alistamento.model.Administrador;
 import com.example.tcc_alistamento.model.Alistamento;
@@ -219,16 +216,16 @@ public class AlistamentoService {
             throw new RegraDeNegocioException(HttpStatus.BAD_REQUEST, "Informe o cidadão.");
         }
         return usuarioRepository.findById(id)
-                .orElseThrow(() -> new UsuarioNotFoundException("Usuário não encontrado"));
+                .orElseThrow(() -> new RegraDeNegocioException(HttpStatus.NOT_FOUND,"Usuário não encontrado"));
     }
 
     private Administrador buscarAdministrador(Integer id) {
         return administradorRepository.findById(id)
-                .orElseThrow(() -> new AdministradorNotFoundException("Administrador não encontrado"));
+                .orElseThrow(() -> new RegraDeNegocioException(HttpStatus.NOT_FOUND,"Administrador não encontrado"));
     }
 
     private Alistamento buscarAlistamento(Integer id) {
         return alistamentoRepository.findById(id)
-                .orElseThrow(() -> new AlistamentoNotFoundException("Alistamento não encontrado"));
+                .orElseThrow(() -> new RegraDeNegocioException(HttpStatus.NOT_FOUND,"Alistamento não encontrado"));
     }
 }

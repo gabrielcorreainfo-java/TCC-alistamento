@@ -18,6 +18,7 @@ public class CepController {
 
     @GetMapping("/{cep}")
     public EnderecoResponseDTO buscar(@PathVariable String cep) {
+
         return cepService.buscar(cep);
     }
 }

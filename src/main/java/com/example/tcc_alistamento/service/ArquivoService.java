@@ -31,41 +31,56 @@ Cuidados de segurança:
 @Service
 public class ArquivoService {
 
+    // Tipos aceitos e a extansão de cada um
     private static final Map<String, String> EXTENSOES = Map.of(
             "application/pdf", ".pdf",
             "image/png", ".png",
             "image/jpeg", ".jpg"
     );
 
+    //  A pasta onde os arquivos ficam
     private final Path pasta;
 
+    // Roda quando a API sobe: lê a pasta do application.properties e cria se não existir
     public ArquivoService(@Value("${api.arquivos.pasta}") String pasta) throws IOException {
+        // Transforma "uploads/documentos" no caminho completo do computador
         this.pasta = Paths.get(pasta).toAbsolutePath().normalize();
+        // Cria a pasta (se ainda não existir)
         Files.createDirectories(this.pasta);
     }
 
     // Salva o arquivo e devolve o nome gerado
     public String salvar(MultipartFile arquivo) {
 
+        // Se não veio arquivo
         if (arquivo == null || arquivo.isEmpty()) {
             throw new RegraDeNegocioException(HttpStatus.BAD_REQUEST, "Selecione um arquivo.");
         }
 
+        // Descobre o tipo real do arquivo
         String tipo = detectarTipo(arquivo);
+        // Cria um nome aleatório ex:3f2a9c1e-7b4d-..
         String nome = UUID.randomUUID() + EXTENSOES.get(tipo);
 
+        // Copia o aqruivo para a pasta
         try (InputStream entrada = arquivo.getInputStream()) {
             Files.copy(entrada, pasta.resolve(nome), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
+            // Deu problema ao gravar no disco: 500
             throw new RegraDeNegocioException(HttpStatus.INTERNAL_SERVER_ERROR, "Não foi possível salvar o arquivo.");
         }
         return nome;
     }
 
+    // Metódo para mostrar na tela o arquivo
     public Resource carregar(String nome) {
         try {
+            // Monta o caminho completo do arquivo
             Path caminho = pasta.resolve(nome).normalize();
+            // Abre o arquivo usa-se o Resource da API
             Resource recurso = new UrlResource(caminho.toUri());
+
+            // Só aceita se estiver DENTRO da pasta e se existir
             if (!caminho.startsWith(pasta) || !recurso.exists()) {
                 throw new RegraDeNegocioException(HttpStatus.NOT_FOUND, "Arquivo não encontrado.");
             }
@@ -75,28 +90,38 @@ public class ArquivoService {
         }
     }
 
+    // Metódo para apagar arquivo
     public void apagar(String nome) {
+        // Documento sem arquivo não tem oque apagar
         if (nome == null) {
             return;
         }
         try {
+            // Apaga se existir
             Files.deleteIfExists(pasta.resolve(nome).normalize());
         } catch (IOException ignorado) {
             // Se não conseguir apagar o arquivo, o registro do banco é removido mesmo assim
         }
     }
 
-    // Descobre o tipo pelos primeiros bytes do arquivo ("assinatura" do formato)
+    // Descobre o tipo pelos primeiros bytes do arquivo
     public String detectarTipo(MultipartFile arquivo) {
+        // Le os 8 primeiros bytes
         byte[] inicio = new byte[8];
+
         try (InputStream entrada = arquivo.getInputStream()) {
             int lidos = entrada.read(inicio);
+
+            // PDF começa com PDF
             if (lidos >= 4 && inicio[0] == '%' && inicio[1] == 'P' && inicio[2] == 'D' && inicio[3] == 'F') {
                 return "application/pdf";
             }
+
+            // PNG começa com o byte 0x9 e "PNG"
             if (lidos >= 4 && (inicio[0] & 0xFF) == 0x89 && inicio[1] == 'P' && inicio[2] == 'N' && inicio[3] == 'G') {
                 return "image/png";
             }
+            // JPG começa com os bytes FF D8 FF
             if (lidos >= 3 && (inicio[0] & 0xFF) == 0xFF && (inicio[1] & 0xFF) == 0xD8 && (inicio[2] & 0xFF) == 0xFF) {
                 return "image/jpeg";
             }

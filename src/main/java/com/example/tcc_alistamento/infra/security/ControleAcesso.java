@@ -7,6 +7,7 @@ import com.example.tcc_alistamento.security.UsuarioAutenticado;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
 
 @Component
 public class ControleAcesso {
@@ -46,7 +47,6 @@ public class ControleAcesso {
     }
 
     public RegraDeNegocioException semPermissao() {
-        return new RegraDeNegocioException(HttpStatus.FORBIDDEN,
-                "Você não tem permissão para acessar este registro.");
+        return new RegraDeNegocioException(HttpStatus.FORBIDDEN, "Você não tem permissão para acessar este registro.");
     }
 }

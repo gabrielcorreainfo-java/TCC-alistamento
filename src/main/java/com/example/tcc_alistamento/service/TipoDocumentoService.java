@@ -2,7 +2,6 @@ package com.example.tcc_alistamento.service;
 
 import com.example.tcc_alistamento.dto.TipoDocumentoRequestDTO;
 import com.example.tcc_alistamento.dto.TipoDocumentoResponseDTO;
-import com.example.tcc_alistamento.exceptions.TipoDeDocumentoNotFoundException;
 import com.example.tcc_alistamento.model.TipoDocumento;
 import com.example.tcc_alistamento.repository.TipoDocumentoRepository;
 import org.springframework.beans.BeanUtils;
@@ -37,7 +36,7 @@ public class TipoDocumentoService {
     }
 
     public TipoDocumento buscarTipoDeDocumentoPorId(Integer id ){
-        return tipoDocumentoRepository.findById(id).orElseThrow(()-> new TipoDeDocumentoNotFoundException("Tipo de Documento não encontrado"));
+        return tipoDocumentoRepository.findById(id).orElseThrow(()-> new RegraDeNegocioException(HttpStatus.NOT_FOUND,"Tipo de Documento não encontrado"));
     }
 
     public TipoDocumentoResponseDTO atualizar(Integer id, TipoDocumentoRequestDTO dto){
